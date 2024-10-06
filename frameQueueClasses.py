@@ -1,10 +1,10 @@
 from __future__ import division
 import cv2
 import sys
-import faulthandler
-import numpy as np
-from tonemap import findTargetLuminances,tonemapSpatiallyUniform
-from astaFilter import astaFilter
+#import faulthandler
+#import numpy as np
+from tonemap import find_target_luminance,tonemap_spatially_uniform
+from astaFilter import asta_filter
  
 class FrameQueue(object):
   """Surrounding frame count is the number of frames counting itself.
@@ -22,7 +22,7 @@ class FrameQueue(object):
 
     self.frames_in_window = surrounding_frame_count
 
-    self.frames_in_video = self.countFrames(video_filename)
+    self.frames_in_video = self.count_frames(video_filename)
 
     if surrounding_frame_count > self.frames_in_video:
       surrounding_frame_count = self.frames_in_video
@@ -32,11 +32,11 @@ class FrameQueue(object):
     self.video_capt = cv2.VideoCapture(video_filename)
 
 
-    self.fourcc = int(self.video_capt.get(cv2.cv.CV_CAP_PROP_FOURCC))
-    self.fps =  self.video_capt.get(cv2.cv.CV_CAP_PROP_FPS)
-    self.size = (int(self.video_capt.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH)), \
-                   int(self.video_capt.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT)))
-    fc = int(self.video_capt.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT))
+    self.fourcc = int(self.video_capt.get(cv2.CAP_PROP_FOURCC))
+    self.fps =  self.video_capt.get(cv2.CAP_PROP_FPS)
+    self.size = (int(self.video_capt.get(cv2.CAP_PROP_FRAME_WIDTH)),
+                   int(self.video_capt.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+    fc = int(self.video_capt.get(cv2.CAP_PROP_FRAME_COUNT))
 
     ctr = self.frames_in_window
 #then in other method we will be keeping frames at max surr frame count
@@ -46,7 +46,7 @@ class FrameQueue(object):
       self.frame_window.append(image)
       ctr -= 1
 
-  def writeVidFrameTEST(self,img,filename):
+  def write_vid_frame_test(self, img, filename):
     image = cv2.cvtColor(img, cv2.COLOR_YUV2BGR)
     cv2.imwrite(filename, image)
 
@@ -63,8 +63,8 @@ class FrameQueue(object):
       return success,img
 
 
-  """Use this instead of prop so that videos without metadata can have a dorrect count"""
-  def countFrames(self,video_filename):
+  """Use this instead of prop so that videos without metadata can have a correct count"""
+  def count_frames(self, video_filename):
     capt = cv2.VideoCapture(video_filename)
     if not capt.isOpened():
       raise ValueError("Invalid input file")
@@ -78,7 +78,7 @@ class FrameQueue(object):
   """This returns a window of frames around the current one.  THe only logic comes
   in the beginning and the end when we have to communicate that the current frmae
   is not in the middle of the window"""      
-  def getNextFrame(self):
+  def get_next_frame(self):
     if self.current_frame > self.frames_in_video:
       return None
     half_window = self.frames_in_window // 2 + 1
@@ -87,7 +87,7 @@ class FrameQueue(object):
       self.current_frame_index += 1
 
     #advance if out from the beginning and still frames left
-    if self.current_frame > half_window and self.current_frame <= (self.frames_in_video - (half_window-1)):
+    if half_window < self.current_frame <= (self.frames_in_video - (half_window - 1)):
 
          success,image = self.readVidFrameConvertBGR2YUV()
          #FIFO OP IN NEXT TWO LINES
@@ -118,47 +118,42 @@ class FrameWindow(object):
   def getLength(self):
     return len(self.frame_list)
 
-  def getOtherFrames(self):
+  def get_other_frames(self):
     return self.frame_list[0:self.curr_frame_index] + \
            self.frame_list[self.curr_frame_index + 1:]
 
-  def isFrameAtEdges(self):
+  def is_frame_at_edges(self):
     """Returns an integer indicating if the frame is close to the beginning or
     ending of the video.  If close to the beginning, it will return a negative
     number indicating how far the center frame is offset from the middle of the
     frame window.  If close to the end, it will return a positive number 
     indicating how far the frame is offset from center"""
-    middle_frame_index = self.getLength() // 2
+    middle_frame_index = self.getLength() // 2 # +1 used earlier
+    return self.curr_frame_index - middle_frame_index
 
-    if middle_frame_index == self.curr_frame_index:
-      return 0
 
-    elif self.curr_frame_index < middle_frame_index:
-      return self.curr_frame_index - middle_frame_index
-
-    else:
-      return self.curr_frame_index - middle_frame_index
     
 if __name__ == "__main__":
 
-  faulthandler.enable()
+ # faulthandler.enable()
   try:
-    frame_queue = FrameQueue('old.avi',19)
+    frame_queue = FrameQueue('large.mp4',19)
   except ValueError as err:
     sys.stderr.write("Invalid Input File\n")
     sys.exit()
 
-  vid = cv2.VideoWriter('new.avi', cv2.cv.CV_FOURCC('M','J','P','G'),
+  vid = cv2.VideoWriter('new.avi', cv2.VideoWriter.fourcc('M','J','P','G'),
                                   frame_queue.fps,frame_queue.size)
 
 
-  fw = frame_queue.getNextFrame()
+  fw = frame_queue.get_next_frame()
 
 
   while fw:
-    gain_ratios = findTargetLuminances(fw.getMainFrame())
-    result = astaFilter(fw,gain_ratios)
-    result = tonemapSpatiallyUniform(result)
+    gain_ratios = find_target_luminance(fw.getMainFrame())
+    result = asta_filter(fw, gain_ratios)
+    result = tonemap_spatially_uniform(result)
     frame_queue.writeVidFrameConvertYUV2BGR(result,vid)
-    fw = frame_queue.getNextFrame()
+    print "Done with a frame"
+    fw = frame_queue.get_next_frame()
 

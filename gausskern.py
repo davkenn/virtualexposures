@@ -70,7 +70,7 @@ def getNeighborhoodCompareKernel(size, std_dev):
   It sets center pixel to zero because a pixel is not included in its neighborhood 
   (think shot noise)"""
   kernel = get2DKernel(size, std_dev)
-  middle_idx = size / 2
+  middle_idx = size // 2 # was middle_idx = size // 2
   # just compare neighborhoods, leave center pixel out
   kernel[middle_idx][middle_idx] = 0.0
   kernel = kernel / kernel.sum() #normalize
@@ -105,35 +105,35 @@ def getNeighborhoodDiffs(neighborhood_1, neighborhood_2,min_diff,max_diff):
   values = distanceMetric(diffs_each_pixel,min_diffs,max_diffs)
   return values
 
-def distanceMetric(distance,min,max):
+def distanceMetric(distance,mn,mx):
   """Parallel version of sequential distanceMetric2
   function below."""
 
-  distance = distance - min
-  max = max - min
+  distance = distance - mn
+  mx = mx - mn
   zeros = np.zeros_like(distance)
 
   a = np.less(distance,zeros)
   dist = np.where(a,zeros,distance)
 
-  b = np.greater(dist,max)
-  dis = np.where(b,max,dist)
+  b = np.greater(dist,mx)
+  dis = np.where(b,mx,dist)
 
-  return (max - dis) / max
+  return (mx - dis) / mx
 
 
-def distanceMetric2(distance,min,max):
+def distanceMetric2(distance,mn,mx):
   """Sequential distance metric.  Not used in final program
   for performance reasons"""
-  distance = distance - min
-  max = max - min
+  distance = distance - mn
+  mx = mx - mn
 
-  if (distance < 0):
+  if distance < 0:
     distance = 0
-  if (distance > max):
-    distance = max
+  elif distance > mx:
+    distance = mx
 
-  return (max - distance) / max
+  return (mx - distance) / mx
 
 if __name__ == "__main__":
 
