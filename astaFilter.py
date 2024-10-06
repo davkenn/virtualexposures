@@ -1,7 +1,7 @@
 from __future__ import division
 import cv2
 import numpy as np
-from gausskern import getNeighborhoodDiffs,calcTempStdDevGetKernel
+from gausskern import get_neighborhood_diffs,calc_temp_std_dev_get_kernel
 
 def asta_filter(frame_window, targets):
   """Takes as argument a frame_window which has the current video frame and its surrounding
@@ -12,7 +12,7 @@ def asta_filter(frame_window, targets):
   could be combined with the temporal filter.  Finally, it returns a 2d array of all the pixels
   for a given video frame calculated by this filter"""
 
-  frame = frame_window.getMainFrame()
+  frame = frame_window.get_main_frame()
 
   (numerators, normalizers), short_of_target = temporal_filter(frame_window,
                                                                targets, 92)
@@ -103,7 +103,7 @@ def average_temporally_adjacent_pixels(frame_window, kernel_dict, filter_keys, m
   numerators = 0.0 
   normalizers = 0.0
 
-  frame = frame_window.getMainFrame()
+  frame = frame_window.get_main_frame()
   lum = frame[:,:,0]
 
   for i in xrange(0,len(frame_window.frame_list)):
@@ -115,7 +115,7 @@ def average_temporally_adjacent_pixels(frame_window, kernel_dict, filter_keys, m
     frame_distance_weights = np.copy(filter_keys) #need filter_keys later so copy
     make_weights_array(frame_distance_weights, curr_gauss_weights) #in-place change
  
-    pixel_distance_weights = getNeighborhoodDiffs(lum,other_lum, 50, max_error)
+    pixel_distance_weights = get_neighborhood_diffs(lum, other_lum, 50, max_error)
     total_gaussian_weights = pixel_distance_weights * frame_distance_weights
 
     normalizers += total_gaussian_weights
@@ -140,7 +140,7 @@ def make_gaussian_kernels(frame_window):
  
     for i in xrange(2,19):  #builds 1-d gaussian kernels of length equal to frame window size 
       kernel_keys.append(i/2)  #with std. devs between .5 and 9.5
-      all_kernels.append(calcTempStdDevGetKernel(i/2,frame_window.getLength()))
+      all_kernels.append(calc_temp_std_dev_get_kernel(i / 2, frame_window.get_length()))
       
 
     if frame_window.is_frame_at_edges() != 0: #if near begin or end of video

@@ -2,7 +2,6 @@ from __future__ import division
 import cv2
 import sys
 #import faulthandler
-#import numpy as np
 from tonemap import find_target_luminance,tonemap_spatially_uniform
 from astaFilter import asta_filter
  
@@ -16,13 +15,11 @@ class FrameQueue(object):
     #overall frame number
     self.current_frame = 1    
     self.frame_window = []
+    self.frames_in_video = self.count_frames(video_filename)
+
     #window is always odd
     if surrounding_frame_count % 2 == 0:
       surrounding_frame_count += 1
-
-    self.frames_in_window = surrounding_frame_count
-
-    self.frames_in_video = self.count_frames(video_filename)
 
     if surrounding_frame_count > self.frames_in_video:
       surrounding_frame_count = self.frames_in_video
@@ -36,12 +33,12 @@ class FrameQueue(object):
     self.fps =  self.video_capt.get(cv2.CAP_PROP_FPS)
     self.size = (int(self.video_capt.get(cv2.CAP_PROP_FRAME_WIDTH)),
                    int(self.video_capt.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+    #is this better than counting manually which i do earlier
     fc = int(self.video_capt.get(cv2.CAP_PROP_FRAME_COUNT))
 
     ctr = self.frames_in_window
 #then in other method we will be keeping frames at max surr frame count
     while ctr > 0:
-
       success,image = self.readVidFrameConvertBGR2YUV()
       self.frame_window.append(image)
       ctr -= 1
@@ -50,9 +47,9 @@ class FrameQueue(object):
     image = cv2.cvtColor(img, cv2.COLOR_YUV2BGR)
     cv2.imwrite(filename, image)
 
-  def writeVidFrameConvertYUV2BGR(self,img,videowriter):
+  def writeVidFrameConvertYUV2BGR(self, img, video_writer):
     image = cv2.cvtColor(img, cv2.COLOR_YUV2BGR)
-    videowriter.write(image)
+    video_writer.write(image)
 
   def readVidFrameConvertBGR2YUV(self):
     success, img = self.video_capt.read()
@@ -111,11 +108,11 @@ class FrameWindow(object):
     self.frame_list = frame_list
     self.curr_frame_index = curr_frame_index - 1
 
-  def getMainFrame(self):
+  def get_main_frame(self):
 
     return self.frame_list[self.curr_frame_index]
 
-  def getLength(self):
+  def get_length(self):
     return len(self.frame_list)
 
   def get_other_frames(self):
@@ -128,13 +125,12 @@ class FrameWindow(object):
     number indicating how far the center frame is offset from the middle of the
     frame window.  If close to the end, it will return a positive number 
     indicating how far the frame is offset from center"""
-    middle_frame_index = self.getLength() // 2 # +1 used earlier
+    middle_frame_index = self.get_length() // 2 # +1 used earlier
     return self.curr_frame_index - middle_frame_index
 
 
     
 if __name__ == "__main__":
-
  # faulthandler.enable()
   try:
     frame_queue = FrameQueue('large.mp4',19)
@@ -150,7 +146,7 @@ if __name__ == "__main__":
 
 
   while fw:
-    gain_ratios = find_target_luminance(fw.getMainFrame())
+    gain_ratios = find_target_luminance(fw.get_main_frame())
     result = asta_filter(fw, gain_ratios)
     result = tonemap_spatially_uniform(result)
     frame_queue.writeVidFrameConvertYUV2BGR(result,vid)

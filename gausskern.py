@@ -5,19 +5,27 @@ import sys
 #if I normalize here like I did in neighborhood kernel I think I would
 #just be doing it twice but it wouldnt affect correctness because im normalizing
 #again anyways
-def get1DKernel(size, std_dev):
-  
+def get_1d_kernel(size, std_dev):
   if size % 2 == 0:
     size += 1
   kernel_t = cv2.getGaussianKernel(size,std_dev)
   return kernel_t
 
+def get_2d_kernel(size, std_dev):
+  """Returns a kernel of size by size with standard deviation given in other arg"""
+  if size % 2 == 0:
+    size += 1
+  #adapted from Howse book
+  kernel_x = cv2.getGaussianKernel(size, std_dev)
+  kernel_y = cv2.getGaussianKernel(size, std_dev)
+  kernel = kernel_y * kernel_x.T
+  return kernel
 
-def getKernelCenter(kernel):
+def get_kernel_center(kernel):
   return kernel.item(len(kernel) // 2)
 
 
-def calcTempStdDevGetKernel(target_num,window_size):
+def calc_temp_std_dev_get_kernel(target_num, window_size):
   """This function will make it so if all temporal pixels had identical
   neighborhoods, the contribution of the neighborhood pixels would be 
   equal to 2 * target_num * G_center where G_center is the weight on center
@@ -38,38 +46,27 @@ def calcTempStdDevGetKernel(target_num,window_size):
     sys.exit()
 
   temp_std_dev = 0.5
-  kernel = get1DKernel(window_size, temp_std_dev)
-  target_weighted = 2 * target_num * getKernelCenter(kernel) * 1.0    #1.0 is because center has
+  kernel = get_1d_kernel(window_size, temp_std_dev)
+  target_weighted = 2 * target_num * get_kernel_center(kernel) * 1.0    #1.0 is because center has
                                                                       #perfect match with itself 
-  neighborhood_weight = kernel.sum() - getKernelCenter(kernel)
+  neighborhood_weight = kernel.sum() - get_kernel_center(kernel)
 
   while abs(neighborhood_weight - target_weighted) > .05:
 
     temp_std_dev += 0.01
-    kernel = get1DKernel(window_size, temp_std_dev)
-    target_weighted = 2 * target_num * getKernelCenter(kernel) * 1.0
-    neighborhood_weight = kernel.sum() - getKernelCenter(kernel)
+    kernel = get_1d_kernel(window_size, temp_std_dev)
+    target_weighted = 2 * target_num * get_kernel_center(kernel) * 1.0
+    neighborhood_weight = kernel.sum() - get_kernel_center(kernel)
   
   return target_weighted, kernel
 
-
-def get2DKernel(size, std_dev):
-  """Returns a kernel of size by size with standard deviation given in other arg"""
-  if size % 2 == 0:
-    size += 1
-  #adapted from Howse book
-  kernel_x = cv2.getGaussianKernel(size, std_dev)
-  kernel_y = cv2.getGaussianKernel(size, std_dev)
-  kernel = kernel_y * kernel_x.T
-  return kernel
-
 #TODO: I am normalizing before the operation in getting neighborhood
  #, is this wrong?
-def getNeighborhoodCompareKernel(size, std_dev):
+def get_neighborhood_compare_kernel(size, std_dev):
   """Calls get2DKernel to create a gaussian neighborhood comparison kernel.
   It sets center pixel to zero because a pixel is not included in its neighborhood 
   (think shot noise)"""
-  kernel = get2DKernel(size, std_dev)
+  kernel = get_2d_kernel(size, std_dev)
   middle_idx = size // 2 # was middle_idx = size // 2
   # just compare neighborhoods, leave center pixel out
   kernel[middle_idx][middle_idx] = 0.0
@@ -77,7 +74,7 @@ def getNeighborhoodCompareKernel(size, std_dev):
   return kernel
 
 
-def getNeighborhoodDiffs(neighborhood_1, neighborhood_2,min_diff,max_diff):
+def get_neighborhood_diffs(neighborhood_1, neighborhood_2, min_diff, max_diff):
   """This function will calculate the diffs between two
   numpy array images (lums) passed as arguments at every pixel. Then it will scale
   the result to be between zero and one. Assume that below some threshold
@@ -89,7 +86,7 @@ def getNeighborhoodDiffs(neighborhood_1, neighborhood_2,min_diff,max_diff):
 
   #from paper: "The neighborhood size, often between 3 and 5, can be 
   #varied depending on noise as can [std_dev] (usually between 2 and 6)
-  g_kernel = getNeighborhoodCompareKernel(5,2) 
+  g_kernel = get_neighborhood_compare_kernel(5, 2)
 
   #TODO: do i really want BORDER_REPLICATE?
   neigh_diffs = np.array(neighborhood_diffs,dtype='float64')
@@ -102,10 +99,10 @@ def getNeighborhoodDiffs(neighborhood_1, neighborhood_2,min_diff,max_diff):
   max_diffs.fill(max_diff)
 
   values = np.zeros_like(diffs_each_pixel)
-  values = distanceMetric(diffs_each_pixel,min_diffs,max_diffs)
+  values = distance_metric(diffs_each_pixel, min_diffs, max_diffs)
   return values
 
-def distanceMetric(distance,mn,mx):
+def distance_metric(distance, mn, mx):
   """Parallel version of sequential distanceMetric2
   function below."""
 
@@ -122,7 +119,7 @@ def distanceMetric(distance,mn,mx):
   return (mx - dis) / mx
 
 
-def distanceMetric2(distance,mn,mx):
+def distance_metric2(distance, mn, mx):
   """Sequential distance metric.  Not used in final program
   for performance reasons"""
   distance = distance - mn
@@ -138,12 +135,12 @@ def distanceMetric2(distance,mn,mx):
 if __name__ == "__main__":
 
   for i in xrange(1, 20):
-    print "MIN 4, MAX 16, ARG ",str(i),"=",distanceMetric(i,4,16)
-    print "MIN 4, MAX 16, ARG ",str(i),".5=",distanceMetric(i+.5,4,16)
+    print "MIN 4, MAX 16, ARG ",str(i),"=",distance_metric(i, 4, 16)
+    print "MIN 4, MAX 16, ARG ",str(i),".5=",distance_metric(i + .5, 4, 16)
   
   j = np.array(([[1.0,2.0,3.0],[4.0,5.0,6.0],[7.0,8.0,9.0]]))
   l = np.array(([[1.0,2.0,3.0],[4.0,5.0,6.0],[7.0,8.0,9.0]]))
 
-  print  getNeighborhoodDiffs(j,l,4, 16)
+  print  get_neighborhood_diffs(j, l, 4, 16)
 
-  print calcTempStdDevGetKernel(2.0,19)
+  print calc_temp_std_dev_get_kernel(2.0, 19)
