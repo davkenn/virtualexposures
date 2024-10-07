@@ -83,7 +83,9 @@ def get_neighborhood_diffs(neighborhood_1, neighborhood_2, min_diff, max_diff):
   some threshold (max_diff) the neighborhoods will be considered as different
   as they possibly can be (returns 0)"""
 
-  neighborhood_diffs = np.abs(neighborhood_1 - neighborhood_2)
+  e = np.subtract(neighborhood_1,neighborhood_2)
+  neighborhood_diffs = np.abs(e)
+
 
   #from paper: "The neighborhood size, often between 3 and 5, can be 
   #varied depending on noise as can [std_dev] (usually between 2 and 6)
@@ -91,18 +93,20 @@ def get_neighborhood_diffs(neighborhood_1, neighborhood_2, min_diff, max_diff):
 
   #TODO: do i really want BORDER_REPLICATE?
   neigh_diffs = np.array(neighborhood_diffs,dtype='float64')
+
+
+
   diffs_each_pixel = cv2.filter2D(neigh_diffs,
                        -1,g_kernel,borderType=cv2.BORDER_REPLICATE)
 
-  min_diffs = np.empty_like(diffs_each_pixel)
-  max_diffs = np.empty_like(diffs_each_pixel)
-  
-  min_diffs.fill(min_diff)
-  max_diffs.fill(max_diff)
 
-  values = np.zeros_like(diffs_each_pixel)
-  values = distance_metric(diffs_each_pixel, min_diffs, max_diffs)
-  return values
+
+#  values = np.zeros_like(diffs_each_pixel)
+
+  values = distance_metric(neigh_diffs, min_diff, max_diff)
+
+
+  return neighborhood_1
 
 def distance_metric(distance, mn, mx):
   """Parallel version of sequential distanceMetric2
@@ -137,12 +141,15 @@ def distance_metric2(distance, mn, mx):
 if __name__ == "__main__":
 
   for i in xrange(1, 20):
-    print "MIN 4, MAX 16, ARG ",str(i),"=",distance_metric(i, 4, 16)
-    print "MIN 4, MAX 16, ARG ",str(i),".5=",distance_metric(i + .5, 4, 16)
+    pass
+  #  print "MIN 4, MAX 16, ARG ",str(i),"=",distance_metric(i, 4, 16)
+
   
-  j = np.array(([[1.0,2.0,3.0],[4.0,5.0,6.0],[7.0,8.0,9.0]]))
-  l = np.array(([[1.0,2.0,3.0],[4.0,5.0,6.0],[7.0,8.0,9.0]]))
+  j = np.array([[1.0,2.0,3.0],[4.0,5.0,6.0],[7.0,8.0,9.0]])
+  l = np.array([[1.0,2.0,3.0],[4.0,5.0,6.0],[7.0,8.0,9.0]])
+  m = np.array([[2.0,5.5,6.6],[7.7,15.0,0.0],[5.5,1.0,7.0]])
+  print distance_metric2(5.5,1.0,7.0)
+  print distance_metric(m,1.0,7.0)
+  #print  get_neighborhood_diffs(j, l, 4, 16)
 
-  print  get_neighborhood_diffs(j, l, 4, 16)
-
-  print calc_temp_std_dev_get_kernel(2.0, 19)
+ # print calc_temp_std_dev_get_kernel(2.0, 19)

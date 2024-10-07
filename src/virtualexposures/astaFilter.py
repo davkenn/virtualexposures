@@ -60,7 +60,6 @@ def temporal_filter(frame_window, target_numbers, max_error):
   # determine how much to use spatial filter
   targets_for_pixels = lookup_targets(filter_keys, kernel_dict)
   distances_short_of_target = targets_for_pixels - normalizers
-
   return (numerators, normalizers), distances_short_of_target
 
 
@@ -138,17 +137,19 @@ def average_temporally_adjacent_pixels(
   normalizers = 0.0
 
   frame = frame_window.get_main_frame()
-  lum = frame[:,:,0]
+  lum = frame[:,:,0].astype(np.int32)
 
   for i in xrange(0,frame_window.get_length()):
 
     other_frame = frame_window.frame_list[i]
-    other_lum = other_frame[:,:,0]
+    other_lum = other_frame[:,:,0].astype(np.int32)
       
     curr_gauss_weights = get_weights_list(i, kernel_dict)
     frame_distance_weights = np.copy(filter_keys) #need filter_keys later so copy
+
     make_weights_array(frame_distance_weights, curr_gauss_weights) #in-place change
- 
+
+
     pixel_distance_weights = get_neighborhood_diffs(
                              lum,
                              other_lum,
@@ -156,10 +157,12 @@ def average_temporally_adjacent_pixels(
                              max_error
     )
 
+
     total_gaussian_weights = pixel_distance_weights * frame_distance_weights
 
     normalizers += total_gaussian_weights
     numerators += other_lum * total_gaussian_weights
+
 
   return numerators, normalizers
 
@@ -186,6 +189,7 @@ def make_gaussian_kernels(frame_window):
                   )
       )
 
+    print kernel_keys
     if frame_window.is_frame_at_edges() != 0: #if near begin or end of video
       all_kernels = rearrange_gaussian_kernels(all_kernels,
                                                frame_window.is_frame_at_edges()

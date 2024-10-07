@@ -1,6 +1,9 @@
 from __future__ import division
 import cv2
 import sys
+
+import numpy as np
+
 #import faulthandler
 from tonemap import find_target_luminance,tonemap_spatially_uniform
 from astaFilter import asta_filter
@@ -154,6 +157,7 @@ if __name__ == "__main__":
 
   while fw:
     gain_ratios = find_target_luminance(fw.get_main_frame())
+
     result = asta_filter(fw, gain_ratios)
     result = tonemap_spatially_uniform(result)
     frame_queue.writeVidFrameConvertYUV2BGR(result,vid)
