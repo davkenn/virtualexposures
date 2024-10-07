@@ -93,6 +93,7 @@ def get_neighborhood_diffs(neighborhood_1, neighborhood_2, min_diff, max_diff):
   neigh_diffs = np.array(neighborhood_diffs,dtype='float64')
   diffs_each_pixel = cv2.filter2D(neigh_diffs,
                        -1,g_kernel,borderType=cv2.BORDER_REPLICATE)
+
   min_diffs = np.empty_like(diffs_each_pixel)
   max_diffs = np.empty_like(diffs_each_pixel)
   

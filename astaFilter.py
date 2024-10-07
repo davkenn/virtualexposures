@@ -17,7 +17,8 @@ def asta_filter(frame_window, targets):
 
   (numerators, normalizers), short_of_target = temporal_filter(frame_window,
                                                                targets, 92)
-  print(short_of_target)
+
+
 
   #I AM LOSING INFO HERE BY ROUNDING BEFORE THE BILATERAL...PROBLEM?
   temp_filtered_lum = np.rint(numerators / normalizers)
@@ -46,6 +47,7 @@ def temporal_filter(frame_window, target_numbers, max_error):
   kernel_dict = make_gaussian_kernels(frame_window)
 
   filter_keys = get_nearest_filter_keys(target_numbers)
+
 
   numerators, normalizers = average_temporally_adjacent_pixels(
                             frame_window,
