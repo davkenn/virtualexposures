@@ -11,6 +11,7 @@ def get_1d_kernel(size, std_dev):
   kernel_t = cv2.getGaussianKernel(size,std_dev)
   return kernel_t
 
+
 def get_2d_kernel(size, std_dev):
   """Returns a kernel of size by size with standard deviation given in other arg"""
   if size % 2 == 0:
@@ -20,6 +21,7 @@ def get_2d_kernel(size, std_dev):
   kernel_y = cv2.getGaussianKernel(size, std_dev)
   kernel = kernel_y * kernel_x.T
   return kernel
+
 
 def get_kernel_center(kernel):
   return kernel.item(len(kernel) // 2)
@@ -73,9 +75,8 @@ def get_neighborhood_compare_kernel(size, std_dev):
   kernel = kernel / kernel.sum() #normalize
   return kernel
 
-
 def get_neighborhood_diffs(neighborhood_1, neighborhood_2, min_diff, max_diff):
-  """This function will calculate the diffs between two
+  """This function will calculate the differences between two
   numpy array images (lums) passed as arguments at every pixel. Then it will scale
   the result to be between zero and one. Assume that below some threshold
   (min_diff) the neighborhoods should be considered as identical and above

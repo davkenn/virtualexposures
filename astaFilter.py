@@ -4,18 +4,20 @@ import numpy as np
 from gausskern import get_neighborhood_diffs,calc_temp_std_dev_get_kernel
 
 def asta_filter(frame_window, targets):
-  """Takes as argument a frame_window which has the current video frame and its surrounding
-  frames.  The targetnums argument is a 2d array containing the target number of pixels to
-  combine for each pixel in the frame. The function first runs the temporal filter to average 
-  the values of each pixel across time.  Then, for each pixel, it will run the spatial
-  filter for that pixel at a strength inversely proportional to how many pixels
-  could be combined with the temporal filter.  Finally, it returns a 2d array of all the pixels
+  """Takes as argument a frame_window which has the current video frame and its
+  surrounding frames.  The targetnums argument is a 2d array containing the
+  target number of pixels to combine for each pixel in the frame. The function
+  first runs the temporal filter to average the values of each pixel across
+  time.  Then, for each pixel, it will run the spatial filter for that pixel at
+  a strength inversely proportional to how many pixels could be combined with
+  the temporal filter.  Finally, it returns a 2d array of all the pixels
   for a given video frame calculated by this filter"""
 
   frame = frame_window.get_main_frame()
 
   (numerators, normalizers), short_of_target = temporal_filter(frame_window,
                                                                targets, 92)
+  print(short_of_target)
 
   #I AM LOSING INFO HERE BY ROUNDING BEFORE THE BILATERAL...PROBLEM?
   temp_filtered_lum = np.rint(numerators / normalizers)
@@ -28,7 +30,38 @@ def asta_filter(frame_window, targets):
   return result_frame
 
 
-  
+def temporal_filter(frame_window, target_numbers, max_error):
+  """This function averages the current frame pixel intensity values with the
+  values of the same pixel in surrounding frames.  It takes a gaussian average
+  of these nearby pixels with weight decreasing with temporal distance from
+  current frame being processed.  It will only take nearby pixels with similar
+  neighborhoods and ignore those with very different neighborhoods.  It takes
+  as argument (1) the window of surrounding frames, (2) a 2d targetnums array
+  with the approximate number of pixels that must be averaged at each pixel
+  and (3) a max_error which determines how similar temporally adjacent frames
+  must be for them to be included in the average of nearby pixels.  This
+  function returns both the temporally averaged pixel values and how short we
+ were from combining enough pixels at each location with this temporal step."""
+
+  kernel_dict = make_gaussian_kernels(frame_window)
+
+  filter_keys = get_nearest_filter_keys(target_numbers)
+
+  numerators, normalizers = average_temporally_adjacent_pixels(
+                            frame_window,
+                            kernel_dict,
+                            filter_keys,
+                            max_error
+  )
+
+  # calculate how short we are in the number of pixels we could average to
+  # determine how much to use spatial filter
+  targets_for_pixels = lookup_targets(filter_keys, kernel_dict)
+  distances_short_of_target = targets_for_pixels - normalizers
+
+  return (numerators, normalizers), distances_short_of_target
+
+
 def spatial_filter(temp_filtered_frame, distances_short_of_targets):
   """This function chooses a final pixel value with either no
   spatial filtering, or varying degrees of spatial filtering depending
@@ -37,12 +70,26 @@ def spatial_filter(temp_filtered_frame, distances_short_of_targets):
  
   #TODO: add a median filtering step before bilateral filter step
 
-  some_filtering = cv2.bilateralFilter(temp_filtered_frame,5,30,0)
-  lots_filtering = cv2.bilateralFilter(temp_filtered_frame,7,55,0)
+  some_filtering = cv2.bilateralFilter(
+                       temp_filtered_frame,
+                    5,
+             30,
+            0
+  )
+
+  lots_filtering = cv2.bilateralFilter(
+                       temp_filtered_frame,
+                    7,
+             55,
+            0
+  )
 
   #need three channels of distances because spatial filter done on all 3  
-  dists_short = np.repeat(distances_short_of_targets[:,:,np.newaxis],3,axis=2)
-
+  dists_short = np.repeat(
+                   distances_short_of_targets[:,:,np.newaxis],
+            3,
+                   axis=2
+  )
 
   #this is used as a cutoff for spots where no further filtering required
   min_values = np.zeros_like(dists_short)
@@ -50,8 +97,10 @@ def spatial_filter(temp_filtered_frame, distances_short_of_targets):
 
   not_short_elems = np.less(dists_short,min_values)
 
-  temp_filter_vals_added = np.where(not_short_elems,temp_filtered_frame,
-                                     np.zeros_like(temp_filtered_frame))
+  temp_filter_vals_added = np.where(
+                              not_short_elems,temp_filtered_frame,
+                              np.zeros_like(temp_filtered_frame)
+  )
 
   middles = np.zeros_like(dists_short)
   middles.fill(0.45)
@@ -66,47 +115,30 @@ def spatial_filter(temp_filtered_frame, distances_short_of_targets):
 
 
   a_lot_short_elems = np.greater_equal(dists_short,middles)
-  lots_space_filter_vals_added = np.where(a_lot_short_elems, lots_filtering,
-                                         some_space_filter_vals_added)
+
+  lots_space_filter_vals_added = np.where(
+                                    a_lot_short_elems,
+                                    lots_filtering,
+                                    some_space_filter_vals_added
+  )
 
   return lots_space_filter_vals_added
- 
-def temporal_filter(frame_window, targetnums, max_error):
-   """This function averages the current frame pixel intensity values with the values of the same
-   pixel in surrounding frames.  It takes a gaussian average of these nearby pixels with weight
-   decreasing with temporal distance from current frame being processed.  It will only take nearby
-   pixels with similar neighborhoods and ignore those with very different neighborhoods.  It takes
-   as argument (1) the window of surrounding frames, (2) a 2d targetnums array with the approximate number of pixels
-   that must be averaged at each pixel and (3) a max_error which determines how similar temporally adjacent
-   frames must be for them to be included in the average of nearby pixels.  This function returns both the 
-   temporally averaged pixel values and how short we were from combining enough pixels at each location with this temporal step."""
-
-#TODO 1:  is there a way to automatically determine max_error rather
-#than just I have to figure it out?  may not generalize from one video to a different video
-
-   kernel_dict = make_gaussian_kernels(frame_window)
-
-   filter_keys = get_nearest_filter_keys(targetnums)
-
-   numerators, normalizers = average_temporally_adjacent_pixels(frame_window, kernel_dict, filter_keys, max_error)
-
-    #calculate how short we are in the number of pixels we could average to determine how much to use spatial filter
-   targets_for_pixels = lookup_targets(filter_keys, kernel_dict)
-   distances_short_of_target = targets_for_pixels - normalizers
-    
-   return (numerators,normalizers), distances_short_of_target
 
 
-
-def average_temporally_adjacent_pixels(frame_window, kernel_dict, filter_keys, max_error):
+def average_temporally_adjacent_pixels(
+    frame_window,
+    kernel_dict,
+    filter_keys,
+    max_error
+):
   
-  numerators = 0.0 
+  numerators = 0.0
   normalizers = 0.0
 
   frame = frame_window.get_main_frame()
   lum = frame[:,:,0]
 
-  for i in xrange(0,len(frame_window.frame_list)):
+  for i in xrange(0,frame_window.get_length()):
 
     other_frame = frame_window.frame_list[i]
     other_lum = other_frame[:,:,0]
@@ -115,7 +147,13 @@ def average_temporally_adjacent_pixels(frame_window, kernel_dict, filter_keys, m
     frame_distance_weights = np.copy(filter_keys) #need filter_keys later so copy
     make_weights_array(frame_distance_weights, curr_gauss_weights) #in-place change
  
-    pixel_distance_weights = get_neighborhood_diffs(lum, other_lum, 50, max_error)
+    pixel_distance_weights = get_neighborhood_diffs(
+                             lum,
+                             other_lum,
+                      50,
+                             max_error
+    )
+
     total_gaussian_weights = pixel_distance_weights * frame_distance_weights
 
     normalizers += total_gaussian_weights
@@ -125,6 +163,7 @@ def average_temporally_adjacent_pixels(frame_window, kernel_dict, filter_keys, m
 
 
 def lookup_targets(filter_keys, kernel_dict):
+
   lookup_target_vectorized = np.vectorize(lookup_one_target)
   return lookup_target_vectorized(filter_keys,kernel_dict)
 
@@ -140,12 +179,15 @@ def make_gaussian_kernels(frame_window):
  
     for i in xrange(2,19):  #builds 1-d gaussian kernels of length equal to frame window size 
       kernel_keys.append(i/2)  #with std. devs between .5 and 9.5
-      all_kernels.append(calc_temp_std_dev_get_kernel(i / 2, frame_window.get_length()))
-      
+      all_kernels.append(
+                  calc_temp_std_dev_get_kernel(i / 2, frame_window.get_length()
+                  )
+      )
 
     if frame_window.is_frame_at_edges() != 0: #if near begin or end of video
       all_kernels = rearrange_gaussian_kernels(all_kernels,
-                                               frame_window.is_frame_at_edges())
+                                               frame_window.is_frame_at_edges()
+                    )
    
     kernel_dict = dict(zip(kernel_keys,all_kernels))
 
@@ -181,7 +223,6 @@ def rearrange_gaussian_kernels(all_kernels, distance_off_center):
       kernel_list = dont_sort_part_copy + kernel_list
 
     elif distance_off_center > 0: #frame i/s near end of video
-         
 
       dont_sort_begin_index =  center_index+1
       dont_sort_part_copy = list(kernel_list[dont_sort_begin_index :  
@@ -201,19 +242,20 @@ def get_weights_list(index, kernel_dict):
   which is both the frame number in the queue and the index to the proper
   gaussian weight"""
   weights_list = []
-  sorted_keys = sorted(kernel_dict.iterkeys())
+
   #go through dict in order
-  for key in sorted_keys:
+  for key in sorted(kernel_dict.iterkeys()):
     weights_list.append(kernel_dict[key][1].item(index))
 
   return weights_list
 
 
 def make_weights_array(filter_keys, weights_list):
-  """Takes a numpy array of equal dimension to the pixel lum array filled with values of about 
-  how many pixels need to be combined at each pixel (filter_keys).  Associates these with
-  the correct elements in weights_list which holds the gaussian weights for the different
-  filter_keys.  Will return a numpy array of pixel lum size with values of spatial gaussian weights"""
+  """Takes a numpy array of equal dimension to the pixel lum array filled with
+  values of about how many pixels need to be combined at each pixel
+  (filter_keys).  Associates these with the correct elements in weights_list
+  which holds the gaussian weights for the different filter_keys.  Will return
+  a numpy array of pixel lum size with values of spatial gaussian weights"""
 
   weights_list.reverse()
 
@@ -234,8 +276,9 @@ def make_weights_array(filter_keys, weights_list):
   filter_keys[filter_keys > 1.6] = weights_list[14] #2.0 weight
   filter_keys[filter_keys > 1.1] = weights_list[15] #1.5 weight
   filter_keys[filter_keys == 1.0] = weights_list[16] #1.0 weight
-  
+
   return filter_keys
+
 
 def get_nearest_filter_keys(target_nums):
   """Keys in the filter dict are at 1, 1.5, 2, etc..."""
