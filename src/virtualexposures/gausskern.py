@@ -63,7 +63,7 @@ def calc_temp_std_dev_get_kernel(target_num, window_size):
     neighborhood_weight = kernel.sum() - get_kernel_center(kernel)
     target_weighted = target * get_kernel_center(kernel) / 2.0
   
-  return target_num, kernel
+  return kernel
 
 #TODO: I am normalizing before the operation in getting neighborhood
  #, is this wrong?

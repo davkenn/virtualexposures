@@ -213,12 +213,12 @@ def rearrange_gaussian_kernels(all_kernels, distance_off_center):
   if distance_off_center == 0:
     return all_kernels
 
-  center_index = all_kernels[0][1].size // 2
+  center_index = all_kernels[0].size // 2
   index = distance_off_center + center_index
   
   for kernel in all_kernels:
 
-    kernel_list = kernel[1].tolist()
+    kernel_list = kernel.tolist()
    
     if distance_off_center < 0: #frame is near beginning of video
 
@@ -239,7 +239,7 @@ def rearrange_gaussian_kernels(all_kernels, distance_off_center):
       kernel_list.sort() #no reverse in this case
       kernel_list = kernel_list + dont_sort_part_copy
    
-    resorted_kernels.append((kernel[0],np.array(kernel_list)))
+    resorted_kernels.append(np.array(kernel_list))
 
   return resorted_kernels
 
@@ -252,7 +252,7 @@ def get_weights_list(index, kernel_dict):
 
   #go through dict in order
   for key in sorted(kernel_dict.iterkeys()):
-    weights_list.append(kernel_dict[key][1].item(index))
+    weights_list.append(kernel_dict[key].item(index))
 
   return weights_list
 
