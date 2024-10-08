@@ -190,7 +190,6 @@ def make_gaussian_kernels(frame_window):
                   )
       )
 
-
     if frame_window.is_frame_at_edges() != 0: #if near begin or end of video
       all_kernels = rearrange_gaussian_kernels(all_kernels,
                                                frame_window.is_frame_at_edges()
@@ -221,7 +220,10 @@ def rearrange_gaussian_kernels(all_kernels, distance_off_center):
     kernel_list = kernel.tolist()
    
     if distance_off_center < 0: #frame is near beginning of video
+      a = [[0.0]]* -distance_off_center
+      b = np.array(a)
 
+      kernel_list = np.concatenate([a, kernel_list[-distance_off_center:]])
       dont_sort_edge_index = center_index - index
       dont_sort_part_copy = list(kernel_list[dont_sort_edge_index:center_index])
       del kernel_list[dont_sort_edge_index:center_index]
