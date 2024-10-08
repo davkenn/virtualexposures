@@ -151,6 +151,7 @@ def average_temporally_adjacent_pixels(
     make_weights_array(frame_distance_weights, curr_gauss_weights) #in-place change
 
 
+
     pixel_distance_weights = get_neighborhood_diffs(
                              lum,
                              other_lum,
@@ -159,7 +160,7 @@ def average_temporally_adjacent_pixels(
     )
 
 
-    total_gaussian_weights = pixel_distance_weights# * frame_distance_weights
+    total_gaussian_weights = pixel_distance_weights * frame_distance_weights * filter_keys
 
     normalizers += total_gaussian_weights
     numerators += other_lum * total_gaussian_weights
@@ -263,7 +264,7 @@ def make_weights_array(filter_keys, weights_list):
   which holds the gaussian weights for the different filter_keys.  Will return
   a numpy array of pixel lum size with values of spatial gaussian weights"""
 
-  #weights_list.reverse()
+  weights_list.reverse()
 
   filter_keys[filter_keys > 8.6] = weights_list[0] #9.0 weight
   filter_keys[filter_keys > 8.1] = weights_list[1] #8.5 weight
