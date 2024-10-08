@@ -83,8 +83,8 @@ def get_neighborhood_diffs(neighborhood_1, neighborhood_2, min_diff, max_diff):
   some threshold (max_diff) the neighborhoods will be considered as different
   as they possibly can be (returns 0)"""
 
-  e = np.subtract(neighborhood_1,neighborhood_2)
-  neighborhood_diffs = np.abs(e)
+
+  neighborhood_diffs = np.abs(np.subtract(neighborhood_1,neighborhood_2))
 
 
   #from paper: "The neighborhood size, often between 3 and 5, can be 
@@ -101,12 +101,9 @@ def get_neighborhood_diffs(neighborhood_1, neighborhood_2, min_diff, max_diff):
 
 
 
-#  values = np.zeros_like(diffs_each_pixel)
-
   values = distance_metric(neigh_diffs, min_diff, max_diff)
 
-
-  return neighborhood_1
+  return values
 
 def distance_metric(distance, mn, mx):
   """Parallel version of sequential distanceMetric2

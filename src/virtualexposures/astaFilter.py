@@ -58,7 +58,8 @@ def temporal_filter(frame_window, target_numbers, max_error):
 
   # calculate how short we are in the number of pixels we could average to
   # determine how much to use spatial filter
-  targets_for_pixels = lookup_targets(filter_keys, kernel_dict)
+ # targets_for_pixels = lookup_targets(filter_keys, kernel_dict)
+  targets_for_pixels = filter_keys
   distances_short_of_target = targets_for_pixels - normalizers
   return (numerators, normalizers), distances_short_of_target
 
@@ -153,12 +154,12 @@ def average_temporally_adjacent_pixels(
     pixel_distance_weights = get_neighborhood_diffs(
                              lum,
                              other_lum,
-                      50,
-                             max_error
+                      2,
+                             40
     )
 
 
-    total_gaussian_weights = pixel_distance_weights * frame_distance_weights
+    total_gaussian_weights = pixel_distance_weights# * frame_distance_weights
 
     normalizers += total_gaussian_weights
     numerators += other_lum * total_gaussian_weights
@@ -182,14 +183,14 @@ def make_gaussian_kernels(frame_window):
     kernel_keys = [] 
     all_kernels = []
  
-    for i in xrange(2,19):  #builds 1-d gaussian kernels of length equal to frame window size 
+    for i in xrange(2,19):  #builds 1-d gaussian kernels of length equal to frame window size
       kernel_keys.append(i/2)  #with std. devs between .5 and 9.5
       all_kernels.append(
                   calc_temp_std_dev_get_kernel(i / 2, frame_window.get_length()
                   )
       )
 
-    print kernel_keys
+
     if frame_window.is_frame_at_edges() != 0: #if near begin or end of video
       all_kernels = rearrange_gaussian_kernels(all_kernels,
                                                frame_window.is_frame_at_edges()
@@ -263,7 +264,7 @@ def make_weights_array(filter_keys, weights_list):
   which holds the gaussian weights for the different filter_keys.  Will return
   a numpy array of pixel lum size with values of spatial gaussian weights"""
 
-  weights_list.reverse()
+  #weights_list.reverse()
 
   filter_keys[filter_keys > 8.6] = weights_list[0] #9.0 weight
   filter_keys[filter_keys > 8.1] = weights_list[1] #8.5 weight
