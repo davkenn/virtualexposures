@@ -46,10 +46,12 @@ def calc_temp_std_dev_get_kernel(target_num, window_size):
   if window_size < 19: #if I want smaller window must change atten
     sys.stderr.write("window size is too small to handle all cases")
     sys.exit()
-
-  temp_std_dev = 0.5
+  #target = target_num
+  #if target_num < 3.1:
+  target = target_num - 0.9
+  temp_std_dev = 0.3
   kernel = get_1d_kernel(window_size, temp_std_dev)
-  target_weighted = 2 * target_num * get_kernel_center(kernel) * 1.0    #1.0 is because center has
+  target_weighted = 2 * target * get_kernel_center(kernel) / 2.0    #1.0 is because center has
                                                                       #perfect match with itself 
   neighborhood_weight = kernel.sum() - get_kernel_center(kernel)
 
@@ -57,10 +59,11 @@ def calc_temp_std_dev_get_kernel(target_num, window_size):
 
     temp_std_dev += 0.01
     kernel = get_1d_kernel(window_size, temp_std_dev)
-    target_weighted = 2 * target_num * get_kernel_center(kernel) * 1.0
+
     neighborhood_weight = kernel.sum() - get_kernel_center(kernel)
+    target_weighted = target * get_kernel_center(kernel) / 2.0
   
-  return target_weighted, kernel
+  return target_num, kernel
 
 #TODO: I am normalizing before the operation in getting neighborhood
  #, is this wrong?

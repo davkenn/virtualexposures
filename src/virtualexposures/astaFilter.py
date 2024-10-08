@@ -169,7 +169,6 @@ def average_temporally_adjacent_pixels(
 
 
 def lookup_targets(filter_keys, kernel_dict):
-
   lookup_target_vectorized = np.vectorize(lookup_one_target)
   return lookup_target_vectorized(filter_keys,kernel_dict)
 
