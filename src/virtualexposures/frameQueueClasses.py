@@ -46,6 +46,7 @@ class FrameQueue(object):
       success,image = self.readVidFrameConvertBGR2YUV()
       self.frame_window.append(image)
 
+
   def count_frames(self):
     """Frames in video are counted manually because some file types do not
     have number of frames in their metadata"""
@@ -78,6 +79,7 @@ class FrameQueue(object):
     else:
       return success,img
 
+
   def get_next_frame(self):
     """This returns a window of frames around the current one.  THe only logic
      comes in the beginning and the end when we have to communicate that the
@@ -107,13 +109,13 @@ class FrameQueue(object):
     return FrameWindow(self.frame_window,self.current_frame_index)
 
 
-"""This is the window around the central frame"""
 class FrameWindow(object):
-  """Given a list of all of its frames at the beginning and this can never be
-  changed. curr_frame_index is 1-indexed rather than 0-indexed"""
+  """This is the window around the central frame"""
+
   def __init__(self, frame_list,curr_frame_index):
     self.frame_list = frame_list
     self.curr_frame_index = curr_frame_index - 1
+
 
   def get_main_frame(self):
     return self.frame_list[self.curr_frame_index]
@@ -121,11 +123,6 @@ class FrameWindow(object):
 
   def get_length(self):
     return len(self.frame_list)
-
-
-  def get_other_frames(self):
-    return self.frame_list[0:self.curr_frame_index] + \
-           self.frame_list[self.curr_frame_index + 1:]
 
 
   def is_frame_at_edges(self):

@@ -9,6 +9,7 @@ def get_1d_kernel(size, std_dev):
   if size % 2 == 0:
     size += 1
   kernel_t = cv2.getGaussianKernel(size,std_dev)
+
   return kernel_t
 
 
@@ -62,7 +63,11 @@ def calc_temp_std_dev_get_kernel(target_num, window_size):
 
     neighborhood_weight = kernel.sum() - get_kernel_center(kernel)
     target_weighted = target * get_kernel_center(kernel) / 2.0
-  
+
+  #should i do this before the loop?
+  middle_idx = len(kernel) // 2
+  # just compare neighborhoods, leave center pixel out
+ # kernel[middle_idx] = 0.0
   return kernel
 
 #TODO: I am normalizing before the operation in getting neighborhood

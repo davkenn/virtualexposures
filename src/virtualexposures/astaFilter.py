@@ -58,7 +58,6 @@ def temporal_filter(frame_window, target_numbers, max_error):
 
   # calculate how short we are in the number of pixels we could average to
   # determine how much to use spatial filter
- # targets_for_pixels = lookup_targets(filter_keys, kernel_dict)
   targets_for_pixels = filter_keys
   distances_short_of_target = targets_for_pixels - normalizers
   return (numerators, normalizers), distances_short_of_target
@@ -150,8 +149,6 @@ def average_temporally_adjacent_pixels(
 
     make_weights_array(frame_distance_weights, curr_gauss_weights) #in-place change
 
-
-
     pixel_distance_weights = get_neighborhood_diffs(
                              lum,
                              other_lum,
@@ -159,23 +156,14 @@ def average_temporally_adjacent_pixels(
                              40
     )
 
-
-    total_gaussian_weights = pixel_distance_weights * frame_distance_weights * filter_keys
+    total_gaussian_weights = (pixel_distance_weights *
+                              frame_distance_weights *
+                              filter_keys)
 
     normalizers += total_gaussian_weights
     numerators += other_lum * total_gaussian_weights
 
-
   return numerators, normalizers
-
-
-def lookup_targets(filter_keys, kernel_dict):
-  lookup_target_vectorized = np.vectorize(lookup_one_target)
-  return lookup_target_vectorized(filter_keys,kernel_dict)
-
-
-def lookup_one_target(filter_key, kernel_dict):
-  return kernel_dict[filter_key][0]
 
 
 def make_gaussian_kernels(frame_window):
@@ -186,18 +174,16 @@ def make_gaussian_kernels(frame_window):
     for i in xrange(2,19):  #builds 1-d gaussian kernels of length equal to frame window size
       kernel_keys.append(i/2)  #with std. devs between .5 and 9.5
       all_kernels.append(
-                  calc_temp_std_dev_get_kernel(i / 2, frame_window.get_length()
-                  )
+                  calc_temp_std_dev_get_kernel(i / 2, frame_window.get_length())
       )
 
     if frame_window.is_frame_at_edges() != 0: #if near begin or end of video
-      all_kernels = rearrange_gaussian_kernels(all_kernels,
-                                               frame_window.is_frame_at_edges()
-                    )
+      all_kernels = rearrange_gaussian_kernels(
+                    all_kernels,
+                    frame_window.is_frame_at_edges()
+      )
    
-    kernel_dict = dict(zip(kernel_keys,all_kernels))
-
-    return kernel_dict 
+    return dict(zip(kernel_keys,all_kernels))
 
 
 def rearrange_gaussian_kernels(all_kernels, distance_off_center):
@@ -212,34 +198,16 @@ def rearrange_gaussian_kernels(all_kernels, distance_off_center):
   if distance_off_center == 0:
     return all_kernels
 
-  center_index = all_kernels[0].size // 2
-  index = distance_off_center + center_index
-  
   for kernel in all_kernels:
-
+    zero_frames = np.array([[0.0]] * abs(distance_off_center))
     kernel_list = kernel.tolist()
    
     if distance_off_center < 0: #frame is near beginning of video
-      a = [[0.0]]* -distance_off_center
-      b = np.array(a)
-
-      kernel_list = np.concatenate([a, kernel_list[-distance_off_center:]])
-      dont_sort_edge_index = center_index - index
-      dont_sort_part_copy = list(kernel_list[dont_sort_edge_index:center_index])
-      del kernel_list[dont_sort_edge_index:center_index]
-      kernel_list.sort()
-      kernel_list.reverse()
-      kernel_list = dont_sort_part_copy + kernel_list
+      kernel_list = np.concatenate([kernel_list[-distance_off_center:],zero_frames])
 
     elif distance_off_center > 0: #frame i/s near end of video
-
-      dont_sort_begin_index =  center_index+1
-      dont_sort_part_copy = list(kernel_list[dont_sort_begin_index :  
-                                      len(kernel_list) - distance_off_center])
-      del kernel_list[dont_sort_begin_index : 
-                                       len(kernel_list) - distance_off_center]
-      kernel_list.sort() #no reverse in this case
-      kernel_list = kernel_list + dont_sort_part_copy
+      kernel_list = np.concatenate([zero_frames, kernel_list[:-distance_off_center]])
+      print(kernel_list)
    
     resorted_kernels.append(np.array(kernel_list))
 
