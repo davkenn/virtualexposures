@@ -26,9 +26,9 @@ def asta_filter(frame_window, targets):
   #put back together bc spatial filter on lum and chrom, not just lum
   frame[:,:,0] = temp_filtered_lum
   
-  result_frame = spatial_filter(frame, short_of_target)
-
-  return result_frame
+#  result_frame = spatial_filter(frame, short_of_target)
+  return frame
+#  return result_frame
 
 
 def temporal_filter(frame_window, target_numbers, max_error):
@@ -94,7 +94,7 @@ def spatial_filter(temp_filtered_frame, distances_short_of_targets):
 
   #this is used as a cutoff for spots where no further filtering required
   min_values = np.zeros_like(dists_short)
-  min_values.fill(.1)
+  min_values.fill(0.5)
 
   not_short_elems = np.less(dists_short,min_values)
 
@@ -224,6 +224,7 @@ def get_weights_list(index, kernel_dict):
   for key in sorted(kernel_dict.iterkeys()):
     weights_list.append(kernel_dict[key].item(index))
 
+
   return weights_list
 
 
@@ -234,25 +235,25 @@ def make_weights_array(filter_keys, weights_list):
   which holds the gaussian weights for the different filter_keys.  Will return
   a numpy array of pixel lum size with values of spatial gaussian weights"""
 
-  weights_list.reverse()
 
-  filter_keys[filter_keys > 8.6] = weights_list[0] #9.0 weight
-  filter_keys[filter_keys > 8.1] = weights_list[1] #8.5 weight
-  filter_keys[filter_keys > 7.6] = weights_list[2] #8.0 weight
-  filter_keys[filter_keys > 7.1] = weights_list[3] #7.5 weight
-  filter_keys[filter_keys > 6.6] = weights_list[4] #7.0 weight
-  filter_keys[filter_keys > 6.1] = weights_list[5] #6.5 weight
-  filter_keys[filter_keys > 5.6] = weights_list[6] #6.0 weight
-  filter_keys[filter_keys > 5.1] = weights_list[7] #5.5 weight
+
+  filter_keys[filter_keys > 8.6] = weights_list[16] #9.0 weight
+  filter_keys[filter_keys > 8.1] = weights_list[15] #8.5 weight
+  filter_keys[filter_keys > 7.6] = weights_list[14] #8.0 weight
+  filter_keys[filter_keys > 7.1] = weights_list[13] #7.5 weight
+  filter_keys[filter_keys > 6.6] = weights_list[12] #7.0 weight
+  filter_keys[filter_keys > 6.1] = weights_list[11] #6.5 weight
+  filter_keys[filter_keys > 5.6] = weights_list[10] #6.0 weight
+  filter_keys[filter_keys > 5.1] = weights_list[9] #5.5 weight
   filter_keys[filter_keys > 4.6] = weights_list[8] #5.0 weight
-  filter_keys[filter_keys > 4.1] = weights_list[9] #4.5 weight
-  filter_keys[filter_keys > 3.6] = weights_list[10] #4.0 weight
-  filter_keys[filter_keys > 3.1] = weights_list[11] #3.5 weight
-  filter_keys[filter_keys > 2.6] = weights_list[12] #3.0 weight
-  filter_keys[filter_keys > 2.1] = weights_list[13] #2.5 weight
-  filter_keys[filter_keys > 1.6] = weights_list[14] #2.0 weight
-  filter_keys[filter_keys > 1.1] = weights_list[15] #1.5 weight
-  filter_keys[filter_keys == 1.0] = weights_list[16] #1.0 weight
+  filter_keys[filter_keys > 4.1] = weights_list[7] #4.5 weight
+  filter_keys[filter_keys > 3.6] = weights_list[6] #4.0 weight
+  filter_keys[filter_keys > 3.1] = weights_list[5] #3.5 weight
+  filter_keys[filter_keys > 2.6] = weights_list[4] #3.0 weight
+  filter_keys[filter_keys > 2.1] = weights_list[3] #2.5 weight
+  filter_keys[filter_keys > 1.6] = weights_list[2] #2.0 weight
+  filter_keys[filter_keys > 1.1] = weights_list[1] #1.5 weight
+  filter_keys[filter_keys == 1.0] = weights_list[0] #1.0 weight
 
   return filter_keys
 
