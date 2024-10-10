@@ -138,13 +138,14 @@ class FrameWindow(object):
 if __name__ == "__main__":
  # faulthandler.enable()
   try:
-    frame_queue = FrameQueue('large6.mp4',35)
+    frame_queue = FrameQueue('large.mp4',59)
+
   except ValueError as err:
     sys.stderr.write("Invalid Input File\n")
     sys.exit()
 
   vid = cv2.VideoWriter(
-      'newtempfilter2.0.avi',
+      'nek0addspatial.avi',
             cv2.VideoWriter.fourcc('M','J','P','G'),
             frame_queue.fps,
             frame_queue.size
@@ -153,12 +154,9 @@ if __name__ == "__main__":
   fw = frame_queue.get_next_frame()
 
   while fw:
-
     gain_ratios = find_target_luminance(fw.get_main_frame())
-
     result = asta_filter(fw, gain_ratios)
     result = tonemap_spatially_uniform(result)
-   # result = tonemap_spatially_uniform((fw.get_main_frame()))
     frame_queue.writeVidFrameConvertYUV2BGR(result,vid)
     print "Done with a frame"
     fw = frame_queue.get_next_frame()

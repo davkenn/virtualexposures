@@ -1,8 +1,11 @@
 from __future__ import division
 import cv2
 import numpy as np
+from numpy.random import normal
+
 from gausskern import get_neighborhood_diffs,calc_temp_std_dev_get_kernel
 from gausskern import intensity_gaussian
+from scipy import stats
 
 
 def asta_filter(frame_window, targets):
@@ -20,7 +23,7 @@ def asta_filter(frame_window, targets):
   (numerators, normalizers), short_of_target = temporal_filter(frame_window,
                                                                targets, 92)
 
-  print short_of_target.max(),short_of_target.min()
+  #print short_of_target.max(),short_of_target.min(),normalizers.max(), normalizers.min(),stats.mode(normalizers,axis=None), np.median(normalizers),np.average(normalizers)
 
 
 
@@ -132,11 +135,13 @@ def average_temporally_adjacent_pixels(
     max_error
 ):
   
-  numerators = 0.0
-  normalizers = 0.0
+  numerators, normalizers, ideal_weight = 0.0, 0.0, 0.0
 
   frame = frame_window.get_main_frame()
   lum = frame[:,:,0].astype(np.int32)
+  #fix frame window class
+  ideal_we = get_weights_list(frame_window.curr_frame_index, kernel_dict)[0]
+  ideal_we *= intensity_gaussian(0,3.5)
 
   for i in xrange(0,frame_window.get_length()):
 
@@ -167,13 +172,22 @@ def average_temporally_adjacent_pixels(
 
     e = intensity_gaussian(pixel_distance_weights, 3.5)
 
-    total_gaussian_weights = (#pixel_distance_weights *
-                              e *
-                             # frame_distance_weights *
-                              filter_keys)
 
+    total_gaussian_weights = (
+                              e *
+                              frame_distance_weights *
+                              filter_keys
+    )
+    ideal_weight += ideal_we * filter_keys
     normalizers += total_gaussian_weights
     numerators += other_lum * total_gaussian_weights
+ # print "Ideal ", stats.mode(ideal_weight,axis=None), " vs. actual", stats.mode(normalizers,axis=None)
+ # print ideal_weight.max(), normalizers.max()
+ # for i in range(len(normalizers)):
+  #    for j in range(len(normalizers[0])):
+   #       if (ideal_weight[i][j]- 0.21) <= normalizers[i][j]:
+    #          print "   ", ideal_weight[i][j], "  ", normalizers[i][j]
+
 
   return numerators, normalizers
 

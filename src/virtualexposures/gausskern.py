@@ -74,7 +74,6 @@ def get_neighborhood_diffs(neighborhood_1, neighborhood_2, min_diff, max_diff):
   some threshold (max_diff) the neighborhoods will be considered as different
   as they possibly can be (returns 0)"""
 
-
   neighborhood_diffs = np.abs(np.subtract(neighborhood_1,neighborhood_2))
 
   return neighborhood_diffs
@@ -86,52 +85,12 @@ def get_neighborhood_diffs(neighborhood_1, neighborhood_2, min_diff, max_diff):
   neigh_diffs = np.array(neighborhood_diffs,dtype='float64')
 
 
-
-  diffs_each_pixel = cv2.filter2D(neigh_diffs,
-                       -1,g_kernel,borderType=cv2.BORDER_REPLICATE)
-
-
-
-  values = distance_metric(neigh_diffs, min_diff, max_diff)
-
-  return values
-
 def intensity_gaussian(x, sigma):
     """
     Computes the Gaussian function for a given x and standard deviation (sigma).
     """
     return (1 / (sigma * np.sqrt(2 * np.pi))) * np.exp(
       -0.5 * ((x ** 2) / (sigma ** 2)))
-
-def distance_metric(distance, mn, mx):
-  """Parallel version of sequential distanceMetric2
-  function below."""
-
-  distance = distance - mn
-  mx = mx - mn
-  zeros = np.zeros_like(distance)
-
-  a = np.less(distance,zeros)
-  dist = np.where(a,zeros,distance)
-
-  b = np.greater(dist,mx)
-  dis = np.where(b,mx,dist)
-
-  return (mx - dis) / mx
-
-
-def distance_metric2(distance, mn, mx):
-  """Sequential distance metric.  Not used in final program
-  for performance reasons"""
-  distance = distance - mn
-  mx = mx - mn
-
-  if distance < 0:
-    distance = 0
-  elif distance > mx:
-    distance = mx
-
-  return (mx - distance) / mx
 
 if __name__ == "__main__":
 
