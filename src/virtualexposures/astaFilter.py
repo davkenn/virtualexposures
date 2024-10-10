@@ -18,6 +18,8 @@ def asta_filter(frame_window, targets):
   (numerators, normalizers), short_of_target = temporal_filter(frame_window,
                                                                targets, 92)
 
+  print short_of_target.max(),short_of_target.min()
+
 
 
   #I AM LOSING INFO HERE BY ROUNDING BEFORE THE BILATERAL...PROBLEM?
@@ -26,9 +28,9 @@ def asta_filter(frame_window, targets):
   #put back together bc spatial filter on lum and chrom, not just lum
   frame[:,:,0] = temp_filtered_lum
   
-#  result_frame = spatial_filter(frame, short_of_target)
+ # result_frame = spatial_filter(frame, short_of_target)
   return frame
-#  return result_frame
+ # return result_frame
 
 
 def temporal_filter(frame_window, target_numbers, max_error):
@@ -73,17 +75,19 @@ def spatial_filter(temp_filtered_frame, distances_short_of_targets):
 
   some_filtering = cv2.bilateralFilter(
                        temp_filtered_frame,
-                    5,
-             30,
-            0
+                    9,
+             22,
+            22
   )
 
   lots_filtering = cv2.bilateralFilter(
                        temp_filtered_frame,
-                    7,
-             55,
-            0
+                    9,
+             150,
+            150
   )
+
+
 
   #need three channels of distances because spatial filter done on all 3  
   dists_short = np.repeat(
@@ -96,23 +100,16 @@ def spatial_filter(temp_filtered_frame, distances_short_of_targets):
   min_values = np.zeros_like(dists_short)
   min_values.fill(0.5)
 
-  not_short_elems = np.less(dists_short,min_values)
-
-  temp_filter_vals_added = np.where(
-                              not_short_elems,temp_filtered_frame,
-                              np.zeros_like(temp_filtered_frame)
-  )
 
   middles = np.zeros_like(dists_short)
-  middles.fill(0.45)
+  middles.fill(3.55)
 
   #will be anded with one other numpy array to get middle range
   greater_than_zeros = np.greater_equal(dists_short,min_values)
   less_than_highs = np.less(dists_short,middles)
   a_little_short_elems = np.logical_and(greater_than_zeros,less_than_highs)
 
-  some_space_filter_vals_added = np.where(a_little_short_elems,
-                                        some_filtering,temp_filter_vals_added)
+  some_space_filter_vals_added = np.where(a_little_short_elems,some_filtering,temp_filtered_frame)
 
 
   a_lot_short_elems = np.greater_equal(dists_short,middles)
@@ -143,9 +140,8 @@ def average_temporally_adjacent_pixels(
 
     other_frame = frame_window.frame_list[i]
     other_lum = other_frame[:,:,0].astype(np.int32)
-      
     curr_gauss_weights = get_weights_list(i, kernel_dict)
-    frame_distance_weights = np.copy(filter_keys) #need filter_keys later so copy
+    frame_distance_weights = np.copy(filter_keys)
 
     make_weights_array(frame_distance_weights, curr_gauss_weights) #in-place change
 
@@ -153,17 +149,18 @@ def average_temporally_adjacent_pixels(
                              lum,
                              other_lum,
                       2,
-                             40
+                             6
     )
 
     total_gaussian_weights = (pixel_distance_weights *
                               frame_distance_weights *
-                              filter_keys)
+                              filter_keys*7.0)
 
     normalizers += total_gaussian_weights
     numerators += other_lum * total_gaussian_weights
 
   return numerators, normalizers
+
 
 
 def make_gaussian_kernels(frame_window):
@@ -207,8 +204,7 @@ def rearrange_gaussian_kernels(all_kernels, distance_off_center):
 
     elif distance_off_center > 0: #frame i/s near end of video
       kernel_list = np.concatenate([zero_frames, kernel_list[:-distance_off_center]])
-      print(kernel_list)
-   
+
     resorted_kernels.append(np.array(kernel_list))
 
   return resorted_kernels
@@ -234,8 +230,6 @@ def make_weights_array(filter_keys, weights_list):
   (filter_keys).  Associates these with the correct elements in weights_list
   which holds the gaussian weights for the different filter_keys.  Will return
   a numpy array of pixel lum size with values of spatial gaussian weights"""
-
-
 
   filter_keys[filter_keys > 8.6] = weights_list[16] #9.0 weight
   filter_keys[filter_keys > 8.1] = weights_list[15] #8.5 weight

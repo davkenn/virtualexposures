@@ -10,7 +10,7 @@ def tone_map(pixel_lum, attenuation):
   ratio = pixel_lum / 255 #255 is max luminance
   num = log10(ratio * (attenuation - 1) + 1)
   denom = log10(attenuation)
-  return num/denom
+  return divide_if_nonzero(num,denom)
 
 
 def tone_map_vectorized(vid_frame, attenuation):
@@ -32,8 +32,7 @@ def divide_if_nonzero_vec(num_array, denom_array):
 
 def  find_target_luminance(vid_frame):
   throwaway_copy = np.copy(vid_frame)
-  throwaway_blurred = cv2.GaussianBlur(throwaway_copy,(7,7),0)
-  original_luminances = np.copy(vid_frame[:, :, 0])
+  throwaway_blurred = cv2.GaussianBlur(throwaway_copy,(11,11),0)
   result = tone_map_vectorized(throwaway_blurred, 34)
   result *= 255
   return divide_if_nonzero_vec(result, throwaway_blurred[:, :, 0])

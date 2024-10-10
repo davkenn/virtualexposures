@@ -50,29 +50,7 @@ def calc_temp_std_dev_get_kernel(target_num, window_size):
 
   kernel = get_1d_kernel(window_size, -1)
   return kernel
-  #target = target_num
-  #if target_num < 3.1:
-  target = target_num - 0.9
-  temp_std_dev = 0.3
-  kernel = get_1d_kernel(window_size, temp_std_dev)
-  target_weighted = target * get_kernel_center(kernel) / 2.0    #1.0 is because center has
-                                                                      #perfect match with itself 
-  neighborhood_weight = kernel.sum() - get_kernel_center(kernel)
 
-  while abs(neighborhood_weight - target_weighted) > .05:
-
-    temp_std_dev += 0.01
-    kernel = get_1d_kernel(window_size, temp_std_dev)
-
-    neighborhood_weight = kernel.sum() - get_kernel_center(kernel)
-    target_weighted = target * get_kernel_center(kernel) / 2.0
-
-  #should i do this before the loop?
-  middle_idx = len(kernel) // 2
-  # just compare neighborhoods, leave center pixel out
-  kernel[middle_idx] = 0.0
-  kernel = kernel / kernel.sum()
-  return kernel
 
 #TODO: I am normalizing before the operation in getting neighborhood
  #, is this wrong?
@@ -85,6 +63,7 @@ def get_neighborhood_compare_kernel(size, std_dev):
   # just compare neighborhoods, leave center pixel out
   kernel[middle_idx][middle_idx] = 0.0
   kernel = kernel / kernel.sum() #normalize
+
   return kernel
 
 def get_neighborhood_diffs(neighborhood_1, neighborhood_2, min_diff, max_diff):
@@ -116,6 +95,13 @@ def get_neighborhood_diffs(neighborhood_1, neighborhood_2, min_diff, max_diff):
   values = distance_metric(neigh_diffs, min_diff, max_diff)
 
   return values
+
+def intensity_gaussian(x, sigma):
+    """
+    Computes the Gaussian function for a given x and standard deviation (sigma).
+    """
+    return (1 / (sigma * np.sqrt(2 * np.pi))) * np.exp(
+      -0.5 * ((x ** 2) / (sigma ** 2)))
 
 def distance_metric(distance, mn, mx):
   """Parallel version of sequential distanceMetric2
