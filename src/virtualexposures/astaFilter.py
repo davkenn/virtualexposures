@@ -23,9 +23,7 @@ def asta_filter(frame_window, targets):
   (numerators, normalizers), short_of_target = temporal_filter(frame_window,
                                                                targets, 92)
 
-  #print short_of_target.max(),short_of_target.min(),normalizers.max(), normalizers.min(),stats.mode(normalizers,axis=None), np.median(normalizers),np.average(normalizers)
-
-
+ # print short_of_target.max(),short_of_target.min(),normalizers.max(), normalizers.min(),stats.mode(normalizers,axis=None), np.median(normalizers),np.average(normalizers)
 
   #I AM LOSING INFO HERE BY ROUNDING BEFORE THE BILATERAL...PROBLEM?
   temp_filtered_lum = np.rint(numerators / normalizers)
@@ -33,9 +31,9 @@ def asta_filter(frame_window, targets):
   #put back together bc spatial filter on lum and chrom, not just lum
   frame[:,:,0] = temp_filtered_lum
   
- # result_frame = spatial_filter(frame, short_of_target)
-  return frame
- # return result_frame
+  result_frame = spatial_filter(frame, short_of_target)
+  #return frame
+  return result_frame
 
 
 def temporal_filter(frame_window, target_numbers, max_error):
@@ -66,7 +64,16 @@ def temporal_filter(frame_window, target_numbers, max_error):
   # calculate how short we are in the number of pixels we could average to
   # determine how much to use spatial filter
   targets_for_pixels = filter_keys
-  distances_short_of_target = targets_for_pixels - normalizers
+
+  ideal_weight = np.ones_like(filter_keys)
+  ideal_weight *= get_weights_list(frame_window.curr_frame_index, kernel_dict)[0]
+  ideal_weight *= intensity_gaussian(0, 4.0)
+  ideal_weight *= filter_keys
+
+  distances_short_of_target = ideal_weight - normalizers
+  print stats.mode(distances_short_of_target,
+                   axis=None), distances_short_of_target.max(), distances_short_of_target.min(),normalizers.max(),stats.mode(normalizers,
+                   axis=None)
   return (numerators, normalizers), distances_short_of_target
 
 
@@ -74,25 +81,23 @@ def spatial_filter(temp_filtered_frame, distances_short_of_targets):
   """This function chooses a final pixel value with either no
   spatial filtering, or varying degrees of spatial filtering depending
   on how short the temporal filter came to gathering enough pixels"""
-
+  return temp_filtered_frame
  
   #TODO: add a median filtering step before bilateral filter step
 
   some_filtering = cv2.bilateralFilter(
                        temp_filtered_frame,
-                    9,
-             22,
-            22
+                    11,
+             41,
+            21
   )
 
-  lots_filtering = cv2.bilateralFilter(
-                       temp_filtered_frame,
-                    9,
-             150,
-            150
-  )
-
-
+#  lots_filtering = cv2.bilateralFilter(
+ #                      temp_filtered_frame,
+  #                  9,
+   #          150,
+    #        150
+  #)
 
   #need three channels of distances because spatial filter done on all 3  
   dists_short = np.repeat(
@@ -100,22 +105,20 @@ def spatial_filter(temp_filtered_frame, distances_short_of_targets):
             3,
                    axis=2
   )
-
   #this is used as a cutoff for spots where no further filtering required
   min_values = np.zeros_like(dists_short)
-  min_values.fill(0.5)
-
+  min_values.fill(-.19)
 
   middles = np.zeros_like(dists_short)
-  middles.fill(3.55)
+  middles.fill(0.02)
+  a1= np.less(dists_short,min_values)
+  filla =np.where(a1, temp_filtered_frame, some_filtering)
 
-  #will be anded with one other numpy array to get middle range
   greater_than_zeros = np.greater_equal(dists_short,min_values)
   less_than_highs = np.less(dists_short,middles)
   a_little_short_elems = np.logical_and(greater_than_zeros,less_than_highs)
 
   some_space_filter_vals_added = np.where(a_little_short_elems,some_filtering,temp_filtered_frame)
-
 
   a_lot_short_elems = np.greater_equal(dists_short,middles)
 
@@ -125,8 +128,8 @@ def spatial_filter(temp_filtered_frame, distances_short_of_targets):
                                     some_space_filter_vals_added
   )
 
-  return lots_space_filter_vals_added
-
+  #return lots_space_filter_vals_added
+  return filla
 
 def average_temporally_adjacent_pixels(
     frame_window,
@@ -134,63 +137,45 @@ def average_temporally_adjacent_pixels(
     filter_keys,
     max_error
 ):
-  
-  numerators, normalizers, ideal_weight = 0.0, 0.0, 0.0
+
+  numerators, normalizers = np.zeros_like(filter_keys), np.zeros_like(filter_keys)
+
 
   frame = frame_window.get_main_frame()
-  lum = frame[:,:,0].astype(np.int32)
+
   #fix frame window class
-  ideal_we = get_weights_list(frame_window.curr_frame_index, kernel_dict)[0]
-  ideal_we *= intensity_gaussian(0,3.5)
+#  ideal_weight = np.ones_like(filter_keys)
+ # ideal_weight *=  get_weights_list(frame_window.curr_frame_index, kernel_dict)[0]
+ # ideal_weight *= intensity_gaussian(0,7.0)
+ # ideal_weight *= filter_keys
 
   for i in xrange(0,frame_window.get_length()):
 
     other_frame = frame_window.frame_list[i]
-    other_lum = other_frame[:,:,0].astype(np.int32)
     curr_gauss_weights = get_weights_list(i, kernel_dict)
     frame_distance_weights = np.copy(filter_keys)
 
     make_weights_array(frame_distance_weights, curr_gauss_weights) #in-place change
 
     pixel_distance_weights = get_neighborhood_diffs(
-                             lum,
-                             other_lum,
+                             frame[:,:,0],
+                             other_frame[:,:,0],
                       2,
                              6
     )
 
-    d = intensity_gaussian(np.array([0,1,2,3,4,5]),0.5)
-    d1 = intensity_gaussian(np.array([0, 1, 2, 3, 4, 5]), 1.0)
-
-    d2 = intensity_gaussian(np.array([0,1,2,3,4,5]),1.5)
-    d3 = intensity_gaussian(np.array([0, 1, 2, 3, 4, 5]), 2.0)
-    d4 = intensity_gaussian(np.array([0, 1, 2, 3, 4, 5]), 2.5)
-    d5 = intensity_gaussian(np.array([0, 1, 2, 3, 4, 5]), 3.0)
-
-    d6 = intensity_gaussian(np.array([0, 1, 2, 3, 4, 5]), 3.5)
-    d7 = intensity_gaussian(np.array([0, 1, 2, 3, 4, 5]), 4.0)
-
-    e = intensity_gaussian(pixel_distance_weights, 3.5)
-
-
-    total_gaussian_weights = (
-                              e *
-                              frame_distance_weights *
-                              filter_keys
-    )
-    ideal_weight += ideal_we * filter_keys
+    e = intensity_gaussian(pixel_distance_weights, 4.0)
+    total_gaussian_weights = e * frame_distance_weights
+    l = np.copy(filter_keys)
+    numerators += total_gaussian_weights * other_frame[:,:,0]
     normalizers += total_gaussian_weights
-    numerators += other_lum * total_gaussian_weights
- # print "Ideal ", stats.mode(ideal_weight,axis=None), " vs. actual", stats.mode(normalizers,axis=None)
- # print ideal_weight.max(), normalizers.max()
- # for i in range(len(normalizers)):
-  #    for j in range(len(normalizers[0])):
-   #       if (ideal_weight[i][j]- 0.21) <= normalizers[i][j]:
-    #          print "   ", ideal_weight[i][j], "  ", normalizers[i][j]
-
+ #   l += 0.1
+  #  while l.max()> 1.0:
+   #     normalizers += np.where(l > 1.0,total_gaussian_weights, 0.0)
+    #    numerators += np.where(l > 1.0, (total_gaussian_weights * other_lum), 0.0)
+     #   l -= 1.0
 
   return numerators, normalizers
-
 
 
 def make_gaussian_kernels(frame_window):
@@ -226,16 +211,16 @@ def rearrange_gaussian_kernels(all_kernels, distance_off_center):
     return all_kernels
 
   for kernel in all_kernels:
+
     zero_frames = np.array([[0.0]] * abs(distance_off_center))
-    kernel_list = kernel.tolist()
-   
+
     if distance_off_center < 0: #frame is near beginning of video
-      kernel_list = np.concatenate([kernel_list[-distance_off_center:],zero_frames])
+      kernel = np.concatenate([kernel[-distance_off_center:],zero_frames])
 
     elif distance_off_center > 0: #frame i/s near end of video
-      kernel_list = np.concatenate([zero_frames, kernel_list[:-distance_off_center]])
+      kernel = np.concatenate([zero_frames, kernel[:-distance_off_center]])
 
-    resorted_kernels.append(np.array(kernel_list))
+    resorted_kernels.append(np.array(kernel))
 
   return resorted_kernels
 
@@ -245,11 +230,9 @@ def get_weights_list(index, kernel_dict):
   which is both the frame number in the queue and the index to the proper
   gaussian weight"""
   weights_list = []
-
   #go through dict in order
   for key in sorted(kernel_dict.iterkeys()):
     weights_list.append(kernel_dict[key].item(index))
-
 
   return weights_list
 

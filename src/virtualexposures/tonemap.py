@@ -41,8 +41,8 @@ def  find_target_luminance(vid_frame):
 def tonemap_spatially_uniform(vid_frame):
   result = tone_map_vectorized(vid_frame, 34)
   result *= 255
-  vid_frame[:, :, 0] = result.astype(int)
-  return vid_frame
+
+  return result
 
 if __name__ == "__main__":
   

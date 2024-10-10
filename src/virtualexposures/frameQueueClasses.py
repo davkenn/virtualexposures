@@ -8,10 +8,6 @@ import numpy as np
 from tonemap import find_target_luminance,tonemap_spatially_uniform
 from astaFilter import asta_filter
 
-
-
-
-
 class FrameQueue(object):
   """Surrounding frame count is the number of frames counting itself.
    Probably need a diff number of surrounding frames for each frame  but
@@ -67,7 +63,8 @@ class FrameQueue(object):
 
 
   def writeVidFrameConvertYUV2BGR(self, img, video_writer):
-    image = cv2.cvtColor(img, cv2.COLOR_YUV2BGR)
+    image = img[:, :, :].astype(np.uint8)
+    image = cv2.cvtColor(image, cv2.COLOR_YUV2BGR)
     video_writer.write(image)
 
 
@@ -75,6 +72,7 @@ class FrameQueue(object):
     success, img = self.video_capt.read()
     if success:
       image = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
+      image = image[:, :, :].astype(np.float64)
       return success, image
     else:
       return success,img
@@ -136,16 +134,15 @@ class FrameWindow(object):
 
     
 if __name__ == "__main__":
- # faulthandler.enable()
   try:
-    frame_queue = FrameQueue('large.mp4',59)
+    frame_queue = FrameQueue('large4.mp4',21)
 
   except ValueError as err:
     sys.stderr.write("Invalid Input File\n")
     sys.exit()
 
   vid = cv2.VideoWriter(
-      'nek0addspatial.avi',
+      'nek0addspatlllial.avi',
             cv2.VideoWriter.fourcc('M','J','P','G'),
             frame_queue.fps,
             frame_queue.size
@@ -156,7 +153,7 @@ if __name__ == "__main__":
   while fw:
     gain_ratios = find_target_luminance(fw.get_main_frame())
     result = asta_filter(fw, gain_ratios)
-    result = tonemap_spatially_uniform(result)
+    result[:,:,0] = tonemap_spatially_uniform(result)
     frame_queue.writeVidFrameConvertYUV2BGR(result,vid)
     print "Done with a frame"
     fw = frame_queue.get_next_frame()
