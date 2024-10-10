@@ -2,6 +2,8 @@ from __future__ import division
 import cv2
 import numpy as np
 from gausskern import get_neighborhood_diffs,calc_temp_std_dev_get_kernel
+from gausskern import intensity_gaussian
+
 
 def asta_filter(frame_window, targets):
   """Takes as argument a frame_window which has the current video frame and its
@@ -152,9 +154,23 @@ def average_temporally_adjacent_pixels(
                              6
     )
 
-    total_gaussian_weights = (pixel_distance_weights *
-                              frame_distance_weights *
-                              filter_keys*7.0)
+    d = intensity_gaussian(np.array([0,1,2,3,4,5]),0.5)
+    d1 = intensity_gaussian(np.array([0, 1, 2, 3, 4, 5]), 1.0)
+
+    d2 = intensity_gaussian(np.array([0,1,2,3,4,5]),1.5)
+    d3 = intensity_gaussian(np.array([0, 1, 2, 3, 4, 5]), 2.0)
+    d4 = intensity_gaussian(np.array([0, 1, 2, 3, 4, 5]), 2.5)
+    d5 = intensity_gaussian(np.array([0, 1, 2, 3, 4, 5]), 3.0)
+
+    d6 = intensity_gaussian(np.array([0, 1, 2, 3, 4, 5]), 3.5)
+    d7 = intensity_gaussian(np.array([0, 1, 2, 3, 4, 5]), 4.0)
+
+    e = intensity_gaussian(pixel_distance_weights, 3.5)
+
+    total_gaussian_weights = (#pixel_distance_weights *
+                              e *
+                             # frame_distance_weights *
+                              filter_keys)
 
     normalizers += total_gaussian_weights
     numerators += other_lum * total_gaussian_weights

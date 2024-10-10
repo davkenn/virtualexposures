@@ -77,7 +77,7 @@ def get_neighborhood_diffs(neighborhood_1, neighborhood_2, min_diff, max_diff):
 
   neighborhood_diffs = np.abs(np.subtract(neighborhood_1,neighborhood_2))
 
-
+  return neighborhood_diffs
   #from paper: "The neighborhood size, often between 3 and 5, can be 
   #varied depending on noise as can [std_dev] (usually between 2 and 6)
   g_kernel = get_neighborhood_compare_kernel(5, 2)
