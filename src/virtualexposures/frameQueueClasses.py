@@ -27,7 +27,7 @@ class FrameQueue(object):
     dims = (int(self.video_capt.get(cv2.CAP_PROP_FRAME_WIDTH)),
                    int(self.video_capt.get(cv2.CAP_PROP_FRAME_HEIGHT)))
 
-    self.video_writer = cv2.VideoWriter('neillllal.avi',
+    self.video_writer = cv2.VideoWriter('neillfu.avi',
                                         cv2.VideoWriter.fourcc(
                                             'M', 'J', 'P','G'),
                                         fps,
@@ -43,6 +43,7 @@ class FrameQueue(object):
     if surrounding_frame_count > self.frames_in_video:
       surrounding_frame_count = self.frames_in_video
 
+#maybe set this to a constant need same value in other file
     self.frames_in_window = surrounding_frame_count
 
     for i in range(self.frames_in_window):
@@ -137,7 +138,7 @@ class FrameWindow(object):
     
 if __name__ == "__main__":
   try:
-    frame_queue = FrameQueue('large.mp4',29)
+    frame_queue = FrameQueue('large6.mp4',29)
   except ValueError as err:
     sys.stderr.write(err.message)
     sys.exit()

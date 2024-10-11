@@ -49,6 +49,8 @@ def temporal_filter(frame_window, target_numbers, max_error):
  were from combining enough pixels at each location with this temporal step."""
 
   intensity_sigma = 4.0
+
+   #make this a class and move this and other things out of the loop
   kernel_dict = make_gaussian_kernels(frame_window,intensity_sigma)
   filter_keys = get_nearest_filter_keys(target_numbers)
 
@@ -68,8 +70,7 @@ def temporal_filter(frame_window, target_numbers, max_error):
   numerators, normalizers = average_temporally_adjacent_pixels(
                             frame_window,
                             kernel_dict,
-                            filter_keys,
-                            max_error
+                            filter_keys
   )
 
   distances_short_of_target = ideal_weight - normalizers
@@ -147,8 +148,7 @@ def spatial_filter(temp_filtered_frame, distances_short_of_targets):
 def average_temporally_adjacent_pixels(
     frame_window,
     kernel_dict,
-    filter_keys,
-    max_error
+    filter_keys
 ):
 
   numerators, normalizers = np.zeros_like(filter_keys), np.zeros_like(filter_keys)
@@ -165,13 +165,11 @@ def average_temporally_adjacent_pixels(
 
     pixel_distance_weights = get_neighborhood_diffs(
                              frame[:,:,0],
-                             other_frame[:,:,0],
-                      2,
-                             6
+                             other_frame[:,:,0]
     )
 
     intensity_weights = intensity_gaussian(pixel_distance_weights, 4.0)
-    total_gaussian_weights = intensity_weights * frame_distance_weights
+    total_gaussian_weights =   frame_distance_weights * intensity_weights
 
     numerators += total_gaussian_weights * other_frame[:,:,0]
     normalizers += total_gaussian_weights

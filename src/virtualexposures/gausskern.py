@@ -56,10 +56,6 @@ def calc_temp_std_dev_get_kernel(target_num,intensity_sigma):
   kernel = get_1d_kernel(size, std_dev)
   total = get_kernel_center(kernel) * target_before_distance_sigma
   while summation < total:
-  #  if std_dev > 5.0:
-   #   size +=2
-    #  std_dev = 0.1
-     # continue
     total = target_before_distance_sigma * get_kernel_center(kernel)
     kernel = get_1d_kernel(size,std_dev)
     std_dev += 0.1
@@ -95,7 +91,7 @@ def get_neighborhood_compare_kernel(size, std_dev):
 
   return kernel
 
-def get_neighborhood_diffs(neighborhood_1, neighborhood_2, min_diff, max_diff):
+def get_neighborhood_diffs(neighborhood_1, neighborhood_2):
   """This function will calculate the differences between two
   numpy array images (lums) passed as arguments at every pixel. Then it will scale
   the result to be between zero and one. Assume that below some threshold
