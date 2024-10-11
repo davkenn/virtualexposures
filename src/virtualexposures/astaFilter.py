@@ -65,7 +65,7 @@ def temporal_filter(frame_window, target_numbers, max_error):
   ideal_weight *= filter_keys
 
   distances_short_of_target = ideal_weight - normalizers
-  print normalizers.min(),normalizers.max(),stats.mode(normalizers,
+  print distances_short_of_target.min(),distances_short_of_target.max(),stats.mode(distances_short_of_target,
                    axis=None)
   return (numerators, normalizers), distances_short_of_target
 
@@ -78,11 +78,19 @@ def spatial_filter(temp_filtered_frame, distances_short_of_targets):
  
   #TODO: add a median filtering step before bilateral filter step
 
+#  some_filtering = cv2.bilateralFilter(
+ #                      temp_filtered_frame,
+  #                  11,
+   #          41,
+   #         21
+ # )
+
+
   some_filtering = cv2.bilateralFilter(
                        temp_filtered_frame,
-                    11,
-             41,
-            21
+                    15,
+             141,
+            81
   )
 
 #  lots_filtering = cv2.bilateralFilter(
