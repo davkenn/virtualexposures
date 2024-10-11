@@ -30,26 +30,36 @@ def calc_temp_std_dev_get_kernel(target_num,intensity_sigma):
   #I have attenuation at 34 so I need to handle target_nums of up to
   #to 10.  If I had a much greater attenuation, I would need to change this
   #algorithm
+
   size = 29
+  #think about this it means how many pixels returned for the low things, which
+  #should be low I think. maybe also look into if the weight is getting more the
+  #more spread out pixels are. and if i should only add together the weights
+  #when the frame is not its self? maybe that would be best but the over under
+  # on pixel counts would be off probably
   if target_num < 1.0:
-    a = get_1d_kernel(size,0.0)
-    a = 0.0 * a
-    a[len(a)//2] = 1.0
-    return a
+    # But if I'm returning one for the center isn't this going to register as
+    #getting too many pixel?
+    kernel = get_1d_kernel(size,0.0) * 0.0
+
+   # a[len(a) // 2] = 1.0
+    kernel[len(kernel)//2] = 0.5
+    return kernel
   if target_num > 10.0:
     sys.stderr.write("Mapping should not go over 9")
     sys.exit()
   target_before_distance_sigma = intensity_gaussian(0,intensity_sigma) * 2.0 * target_num
 
+#move this out of the loop
   std_dev = 0.5
   summation = 0.0
   kernel = get_1d_kernel(size, std_dev)
   total = get_kernel_center(kernel) * target_before_distance_sigma
   while summation < total:
-    if std_dev > 10.0:
-      size +=2
-      std_dev = 0.1
-      continue
+  #  if std_dev > 5.0:
+   #   size +=2
+    #  std_dev = 0.1
+     # continue
     total = target_before_distance_sigma * get_kernel_center(kernel)
     kernel = get_1d_kernel(size,std_dev)
     std_dev += 0.1
