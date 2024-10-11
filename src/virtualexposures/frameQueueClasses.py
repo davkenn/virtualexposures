@@ -23,7 +23,7 @@ class FrameQueue(object):
     #window is always odd
     self.video_capt = cv2.VideoCapture(video_filename)
     if not self.video_capt.isOpened():
-      print " AAAA"
+      raise ValueError("Invalid input file: " + video_filename)
 
 #    self.fourcc = int(self.video_capt.get(cv2.CAP_PROP_FOURCC))
     fps =  self.video_capt.get(cv2.CAP_PROP_FPS)
@@ -57,8 +57,7 @@ class FrameQueue(object):
     """Frames in video are counted manually because some file types do not
     have number of frames in their metadata"""
 
-    if not self.video_capt.isOpened():
-      raise ValueError("Invalid input file")
+
     cnt = 0
     success, image = self.video_capt.read()
     while success:
@@ -90,28 +89,25 @@ class FrameQueue(object):
      comes in the beginning and the end when we have to communicate that the
      current frame is not in the middle of the window"""
 
+    half_window = self.frames_in_window // 2 + 1
+
     if self.current_frame == self.frames_in_video:
       return None
-    half_window = self.frames_in_window // 2
 
-    if self.current_frame <= half_window:
+    elif self.current_frame <= half_window:
       self.current_frame_index += 1
 
     #advance if out from the beginning and still frames left
-    if half_window < self.current_frame <= (self.frames_in_video - half_window):
+    elif self.current_frame < self.frames_in_video - half_window:
+      success,image = self.readVidFrameConvertBGR2YUV()
+      self.frame_window.append(image)
+      self.frame_window.pop(0)
 
-         success,image = self.readVidFrameConvertBGR2YUV()
-
-         self.frame_window.append(image)
-         self.frame_window.pop(0)
-
-    if self.current_frame > (self.frames_in_video - half_window):
-
+    else: #end of video
       self.current_frame_index += 1
 
-    #THIS LINE MUST BE RIGHT BEFORE RETURN STATEMENT SO I DONT MESS UP LOGIC
     self.current_frame +=1
-    #is there a bug in incrementing frame index in framewindow
+
     print self.current_frame_index
     return FrameWindow(self.frame_window,self.current_frame_index)
 
@@ -144,9 +140,9 @@ class FrameWindow(object):
     
 if __name__ == "__main__":
   try:
-    frame_queue = FrameQueue('large2.mp4',21)
+    frame_queue = FrameQueue('large2.mp4',19)
   except ValueError as err:
-    sys.stderr.write("Invalid Input File\n")
+    sys.stderr.write(err.message)
     sys.exit()
 
   fw = frame_queue.get_next_frame()
@@ -158,4 +154,5 @@ if __name__ == "__main__":
     frame_queue.writeVidFrameConvertYUV2BGR(result)
     print "Done with a frame"
     fw = frame_queue.get_next_frame()
+
 
