@@ -1,10 +1,7 @@
 from __future__ import division
 import cv2
 import sys
-
 import numpy as np
-
-#import faulthandler
 from tonemap import find_target_luminance,tonemap_spatially_uniform
 from astaFilter import asta_filter
 
@@ -17,7 +14,7 @@ class FrameQueue(object):
     #position of current frame in window
     self.current_frame_index = -1
     #overall frame number
-    self.current_frame = 0
+    self.current_frame = 1
     self.frame_window = []
 
     #window is always odd
@@ -82,32 +79,32 @@ class FrameQueue(object):
     else:
       return success,img
 
-
   def get_next_frame(self):
     """This returns a window of frames around the current one.  THe only logic
      comes in the beginning and the end when we have to communicate that the
      current frame is not in the middle of the window"""
 
-    half_window = self.frames_in_window // 2
-
-    if self.current_frame == self.frames_in_video:
+    if self.current_frame > self.frames_in_video:
       return None
+    half_window = self.frames_in_window // 2 + 1
 
-    elif self.current_frame < half_window:
+    if self.current_frame <= half_window:
       self.current_frame_index += 1
 
     #advance if out from the beginning and still frames left
-    elif self.current_frame < self.frames_in_video - half_window:
-      success,image = self.readVidFrameConvertBGR2YUV()
-      self.frame_window.append(image)
-      self.frame_window.pop(0)
+    elif self.current_frame <= (self.frames_in_video - (half_window - 1)):
 
-    else: #end of video
+         success,image = self.readVidFrameConvertBGR2YUV()
+
+         self.frame_window.append(image)
+         self.frame_window.pop(0)
+
+    else:
       self.current_frame_index += 1
 
+    #THIS LINE MUST BE RIGHT BEFORE RETURN STATEMENT SO I DONT MESS UP LOGIC
     self.current_frame +=1
-
-    print self.current_frame_index
+    #is there a bug in incrementing frame index in framewindow
     return FrameWindow(self.frame_window,self.current_frame_index)
 
 
@@ -117,7 +114,8 @@ class FrameWindow(object):
   def __init__(self, frame_list,curr_frame_index):
     self.frame_list = frame_list
     self.curr_frame_index = curr_frame_index
-    print self.frame_list[:3][:3][0]
+    print self.curr_frame_index
+
 
   def get_main_frame(self):
     return self.frame_list[self.curr_frame_index]
@@ -133,7 +131,7 @@ class FrameWindow(object):
     number indicating how far the center frame is offset from the middle of the
     frame window.  If close to the end, it will return a positive number 
     indicating how far the frame is offset from center"""
-    middle_frame_index = self.get_length() // 2 # +1 used earlier
+    middle_frame_index = self.get_length() // 2
     return self.curr_frame_index - middle_frame_index
 
     

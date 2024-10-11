@@ -6,18 +6,12 @@ import sys
 #just be doing it twice but it wouldnt affect correctness because im normalizing
 #again anyways
 def get_1d_kernel(size, std_dev):
-  if size % 2 == 0:
-    size += 1
   kernel_t = cv2.getGaussianKernel(size,std_dev)
-
   return kernel_t
 
 
 def get_2d_kernel(size, std_dev):
   """Returns a kernel of size by size with standard deviation given in other arg"""
-  if size % 2 == 0:
-    size += 1
-  #adapted from Howse book
   kernel_x = cv2.getGaussianKernel(size, std_dev)
   kernel_y = cv2.getGaussianKernel(size, std_dev)
   kernel = kernel_y * kernel_x.T
