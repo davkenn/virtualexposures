@@ -23,9 +23,11 @@ def asta_filter(frame_window, targets):
   (numerators, normalizers), short_of_target = temporal_filter(frame_window,
                                                                targets, 92)
 
-  frame[:,:,0] = numerators / normalizers
+
+  output = np.copy(frame)
+  output[:, :, 0] = numerators / normalizers
   
-  result_frame = spatial_filter(frame, short_of_target)
+  result_frame = spatial_filter(output, short_of_target)
 
   return result_frame
 

@@ -57,7 +57,6 @@ class FrameQueue(object):
     """Frames in video are counted manually because some file types do not
     have number of frames in their metadata"""
 
-
     cnt = 0
     success, image = self.video_capt.read()
     while success:
@@ -89,12 +88,12 @@ class FrameQueue(object):
      comes in the beginning and the end when we have to communicate that the
      current frame is not in the middle of the window"""
 
-    half_window = self.frames_in_window // 2 + 1
+    half_window = self.frames_in_window // 2
 
     if self.current_frame == self.frames_in_video:
       return None
 
-    elif self.current_frame <= half_window:
+    elif self.current_frame < half_window:
       self.current_frame_index += 1
 
     #advance if out from the beginning and still frames left
@@ -118,7 +117,7 @@ class FrameWindow(object):
   def __init__(self, frame_list,curr_frame_index):
     self.frame_list = frame_list
     self.curr_frame_index = curr_frame_index
-
+    print self.frame_list[:3][:3][0]
 
   def get_main_frame(self):
     return self.frame_list[self.curr_frame_index]
