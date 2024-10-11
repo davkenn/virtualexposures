@@ -56,13 +56,12 @@ def temporal_filter(frame_window, target_numbers, max_error):
   # determine how much to use spatial filter
   ideal_weight = np.ones_like(filter_keys)
 
-  ideal_weight *= kernel_dict[1.0].item(frame_window.curr_frame_index)
-  ls = get_weights_list(frame_window.curr_frame_index, kernel_dict)
+ # ls = get_weights_list(frame_window.curr_frame_index, kernel_dict)
 
   f = np.vectorize(lambda x: kernel_dict[x].item(frame_window.curr_frame_index))
   e = f(filter_keys)
 
-#  ideal_weight *= a
+  ideal_weight *= e
   ideal_weight *= intensity_gaussian(0, 4.0)
   ideal_weight *= filter_keys
 
@@ -74,14 +73,11 @@ def temporal_filter(frame_window, target_numbers, max_error):
   )
 
   distances_short_of_target = ideal_weight - normalizers
-  print normalizers.min(),normalizers.max(),stats.mode(normalizers,
+  print distances_short_of_target.min(),distances_short_of_target.max(),stats.mode(distances_short_of_target,
                    axis=None)
-  print ideal_weight
+
   return (numerators, normalizers), distances_short_of_target
 
-
-def get_ideal_weight(filter_keys,gaussian_weights):
-    return make_weights_array(filter_keys,gaussian_weights)
 
 def spatial_filter(temp_filtered_frame, distances_short_of_targets):
   """This function chooses a final pixel value with either no
@@ -121,7 +117,7 @@ def spatial_filter(temp_filtered_frame, distances_short_of_targets):
   )
   #this is used as a cutoff for spots where no further filtering required
   min_values = np.zeros_like(dists_short)
-  min_values.fill(-.19)
+  min_values.fill(0.0)
 
   middles = np.zeros_like(dists_short)
   middles.fill(0.02)
@@ -185,7 +181,7 @@ def make_gaussian_kernels(frame_window,intesity_sigma):
     kernel_keys = [] 
     all_kernels = []
  
-    for i in xrange(2,19):  #builds 1-d gaussian kernels of length equal to frame window size
+    for i in xrange(0,20):  #builds 1-d gaussian kernels of length equal to frame window size
       kernel_keys.append(i/2)  #with std. devs between .5 and 9.5
       all_kernels.append(
                   calc_temp_std_dev_get_kernel(i / 2,intesity_sigma)

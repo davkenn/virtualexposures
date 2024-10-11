@@ -30,18 +30,28 @@ def calc_temp_std_dev_get_kernel(target_num,intensity_sigma):
   #I have attenuation at 34 so I need to handle target_nums of up to
   #to 10.  If I had a much greater attenuation, I would need to change this
   #algorithm
-  if target_num > 9:
+  size = 29
+  if target_num < 1.0:
+    a = get_1d_kernel(size,0.0)
+    a = 0.0 * a
+    a[len(a)//2] = 1.0
+    return a
+  if target_num > 10.0:
     sys.stderr.write("Mapping should not go over 9")
     sys.exit()
   target_before_distance_sigma = intensity_gaussian(0,intensity_sigma) * 2.0 * target_num
 
   std_dev = 0.5
   summation = 0.0
-  kernel = get_1d_kernel(19, std_dev)
+  kernel = get_1d_kernel(size, std_dev)
   total = get_kernel_center(kernel) * target_before_distance_sigma
   while summation < total:
+    if std_dev > 10.0:
+      size +=2
+      std_dev = 0.1
+      continue
     total = target_before_distance_sigma * get_kernel_center(kernel)
-    kernel = get_1d_kernel(19,std_dev)
+    kernel = get_1d_kernel(size,std_dev)
     std_dev += 0.1
     summation = np.zeros_like(kernel)
     summation =intensity_gaussian(summation,intensity_sigma)

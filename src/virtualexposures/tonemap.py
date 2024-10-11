@@ -18,10 +18,10 @@ def tone_map_vectorized(vid_frame, attenuation):
   tone_map_vector_function = np.vectorize(tone_map)
   return tone_map_vector_function(lum,attenuation)
   
-
+#did I fix this in an okay way?
 def divide_if_nonzero(num, denom):
   if denom == 0.0:
-    return 1.0
+    return num
   return num / denom
 
 
@@ -37,7 +37,6 @@ def  find_target_luminance(vid_frame):
 
   result *= 255
 
-  assert np.all(np.array(list(map(lambda x: x < 10.0, result/throwaway_blurred[:,:,0]))))
  # return divide_if_nonzero_vec(result, vid_frame[:, :, 0]) #bug
   return divide_if_nonzero_vec(result, throwaway_blurred[:,:,0])
 
