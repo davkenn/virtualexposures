@@ -22,7 +22,7 @@ def get_kernel_center(kernel):
   return kernel.item(len(kernel) // 2)
 
 
-def calc_temp_std_dev_get_kernel(target_num, window_size):
+def calc_temp_std_dev_get_kernel(target_num,intensity_sigma):
   """This function will make it so if all temporal pixels had identical
   neighborhoods, the contribution of the neighborhood pixels would be 
   equal to 2 * target_num * G_center where G_center is the weight on center
@@ -30,19 +30,34 @@ def calc_temp_std_dev_get_kernel(target_num, window_size):
   #I have attenuation at 34 so I need to handle target_nums of up to
   #to 10.  If I had a much greater attenuation, I would need to change this
   #algorithm
-  
   if target_num > 9:
     sys.stderr.write("Mapping should not go over 9")
     sys.exit()
+  target_before_distance_sigma = intensity_gaussian(0,intensity_sigma) * 2.0 * target_num
+
+  std_dev = 0.5
+  summation = 0.0
+  kernel = get_1d_kernel(19, std_dev)
+  total = get_kernel_center(kernel) * target_before_distance_sigma
+  while summation < total:
+    total = target_before_distance_sigma * get_kernel_center(kernel)
+    kernel = get_1d_kernel(19,std_dev)
+    std_dev += 0.1
+    summation = np.zeros_like(kernel)
+    summation =intensity_gaussian(summation,intensity_sigma)
+    summation = kernel * summation
+    summation = summation.sum()
+
+
+
 
   #paper changes both neighborhood size and std dev dynamically..
   #I have a fixed size neighborhood and just change std dev dynamically
 
-  if window_size < 19: #if I want smaller window must change atten
-    sys.stderr.write("window size is too small to handle all cases")
-    sys.exit()
+ # if window_size < 19: #if I want smaller window must change atten
+  #  sys.stderr.write("window size is too small to handle all cases")
+   # sys.exit()
 
-  kernel = get_1d_kernel(window_size, -1)
   return kernel
 
 

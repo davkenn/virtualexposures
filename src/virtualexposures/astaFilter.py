@@ -45,7 +45,8 @@ def temporal_filter(frame_window, target_numbers, max_error):
   function returns both the temporally averaged pixel values and how short we
  were from combining enough pixels at each location with this temporal step."""
 
-  kernel_dict = make_gaussian_kernels(frame_window)
+  intensity_sigma = 4.0
+  kernel_dict = make_gaussian_kernels(frame_window,intensity_sigma)
 
   filter_keys = get_nearest_filter_keys(target_numbers)
 
@@ -60,7 +61,7 @@ def temporal_filter(frame_window, target_numbers, max_error):
   # calculate how short we are in the number of pixels we could average to
   # determine how much to use spatial filter
   ideal_weight = np.ones_like(filter_keys)
-  ideal_weight *= get_weights_list(frame_window.curr_frame_index, kernel_dict)[0]
+#  ideal_weight *= get_weights_list(frame_window.curr_frame_index, kernel_dict)[0]
   ideal_weight *= intensity_gaussian(0, 4.0)
   ideal_weight *= filter_keys
 
@@ -167,7 +168,7 @@ def average_temporally_adjacent_pixels(
   return numerators, normalizers
 
 
-def make_gaussian_kernels(frame_window):
+def make_gaussian_kernels(frame_window,intesity_sigma):
 
     kernel_keys = [] 
     all_kernels = []
@@ -175,7 +176,7 @@ def make_gaussian_kernels(frame_window):
     for i in xrange(2,19):  #builds 1-d gaussian kernels of length equal to frame window size
       kernel_keys.append(i/2)  #with std. devs between .5 and 9.5
       all_kernels.append(
-                  calc_temp_std_dev_get_kernel(i / 2, frame_window.get_length())
+                  calc_temp_std_dev_get_kernel(i / 2,intesity_sigma)
       )
 
     if frame_window.is_frame_at_edges() != 0: #if near begin or end of video
