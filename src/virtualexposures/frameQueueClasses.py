@@ -137,7 +137,7 @@ class FrameWindow(object):
     
 if __name__ == "__main__":
   try:
-    frame_queue = FrameQueue('large2.mp4',29)
+    frame_queue = FrameQueue('large.mp4',29)
   except ValueError as err:
     sys.stderr.write(err.message)
     sys.exit()

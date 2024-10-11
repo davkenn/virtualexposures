@@ -74,7 +74,10 @@ def temporal_filter(frame_window, target_numbers, max_error):
 
   distances_short_of_target = ideal_weight - normalizers
   print distances_short_of_target.min(),distances_short_of_target.max(),stats.mode(distances_short_of_target,
-                   axis=None)
+                   axis=None),np.average(distances_short_of_target)
+#   print normalizers.min(), normalizers.max(), stats.mode(normalizers,axis= None),np.average(normalizers)
+
+#also think if you should compare the denom sizes after you just changed the kernel to super big. see if it gathered more weight before
 
   return (numerators, normalizers), distances_short_of_target
 
@@ -186,7 +189,7 @@ def make_gaussian_kernels(frame_window,intesity_sigma):
       all_kernels.append(
                   calc_temp_std_dev_get_kernel(i / 2,intesity_sigma)
       )
-
+#maybe move this to the framequeue class
     if frame_window.is_frame_at_edges() != 0: #if near begin or end of video
       all_kernels = rearrange_gaussian_kernels(
                     all_kernels,
@@ -241,7 +244,7 @@ def make_weights_array(filter_keys, weights_list):
   (filter_keys).  Associates these with the correct elements in weights_list
   which holds the gaussian weights for the different filter_keys.  Will return
   a numpy array of pixel lum size with values of spatial gaussian weights"""
-
+#what about my filter key 9.5? why are these diff lengths
   filter_keys[filter_keys > 8.6] = weights_list[16] #9.0 weight
   filter_keys[filter_keys > 8.1] = weights_list[15] #8.5 weight
   filter_keys[filter_keys > 7.6] = weights_list[14] #8.0 weight
