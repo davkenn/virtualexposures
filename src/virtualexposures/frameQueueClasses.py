@@ -19,9 +19,27 @@ class FrameQueue(object):
     #overall frame number
     self.current_frame = 0
     self.frame_window = []
-    self.frames_in_video = self.count_frames()
 
     #window is always odd
+    self.video_capt = cv2.VideoCapture(video_filename)
+    if not self.video_capt.isOpened():
+      print " AAAA"
+
+#    self.fourcc = int(self.video_capt.get(cv2.CAP_PROP_FOURCC))
+    fps =  self.video_capt.get(cv2.CAP_PROP_FPS)
+    dims = (int(self.video_capt.get(cv2.CAP_PROP_FRAME_WIDTH)),
+                   int(self.video_capt.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+
+    self.video_writer = cv2.VideoWriter('neial.avi',
+                                        cv2.VideoWriter.fourcc(
+                                            'M', 'J', 'P','G'),
+                                        fps,
+                                        dims
+
+    )
+
+    self.frames_in_video = self.count_frames()
+
     if surrounding_frame_count % 2 == 0:
       surrounding_frame_count += 1
 
@@ -30,14 +48,6 @@ class FrameQueue(object):
 
     self.frames_in_window = surrounding_frame_count
 
-    self.video_capt = cv2.VideoCapture(video_filename)
-
-    self.fourcc = int(self.video_capt.get(cv2.CAP_PROP_FOURCC))
-    self.fps =  self.video_capt.get(cv2.CAP_PROP_FPS)
-    self.size = (int(self.video_capt.get(cv2.CAP_PROP_FRAME_WIDTH)),
-                   int(self.video_capt.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-
-#then in other method we will be keeping frames at max surr frame count
     for i in range(self.frames_in_window):
       success,image = self.readVidFrameConvertBGR2YUV()
       self.frame_window.append(image)
@@ -46,21 +56,23 @@ class FrameQueue(object):
   def count_frames(self):
     """Frames in video are counted manually because some file types do not
     have number of frames in their metadata"""
-    capt = cv2.VideoCapture(self.video_filename)
-    if not capt.isOpened():
+
+    if not self.video_capt.isOpened():
       raise ValueError("Invalid input file")
     cnt = 0
-    success, image = capt.read()
+    success, image = self.video_capt.read()
     while success:
       cnt += 1
-      success, image = capt.read()
+      success, image = self.video_capt.read()
+    self.video_capt.release()
+    self.video_capt.open(self.video_filename)
     return cnt
 
 
-  def writeVidFrameConvertYUV2BGR(self, img, video_writer):
+  def writeVidFrameConvertYUV2BGR(self, img):
     image = img[:, :, :].astype(np.uint8)
     image = cv2.cvtColor(image, cv2.COLOR_YUV2BGR)
-    video_writer.write(image)
+    self.video_writer.write(image)
 
 
   def readVidFrameConvertBGR2YUV(self):
@@ -77,7 +89,7 @@ class FrameQueue(object):
     """This returns a window of frames around the current one.  THe only logic
      comes in the beginning and the end when we have to communicate that the
      current frame is not in the middle of the window"""
-    print self.current_frame_index
+
     if self.current_frame == self.frames_in_video:
       return None
     half_window = self.frames_in_window // 2
@@ -100,17 +112,16 @@ class FrameQueue(object):
     #THIS LINE MUST BE RIGHT BEFORE RETURN STATEMENT SO I DONT MESS UP LOGIC
     self.current_frame +=1
     #is there a bug in incrementing frame index in framewindow
+    print self.current_frame_index
     return FrameWindow(self.frame_window,self.current_frame_index)
 
 
 class FrameWindow(object):
   """This is the window around the central frame"""
 
-
   def __init__(self, frame_list,curr_frame_index):
     self.frame_list = frame_list
     self.curr_frame_index = curr_frame_index
-
 
 
   def get_main_frame(self):
@@ -134,18 +145,9 @@ class FrameWindow(object):
 if __name__ == "__main__":
   try:
     frame_queue = FrameQueue('large2.mp4',21)
-
   except ValueError as err:
     sys.stderr.write("Invalid Input File\n")
     sys.exit()
-
-  vid = cv2.VideoWriter(
-      'neial.avi',
-
-            cv2.VideoWriter.fourcc('M','J','P','G'),
-            frame_queue.fps,
-            frame_queue.size
-  )
 
   fw = frame_queue.get_next_frame()
 
@@ -153,7 +155,7 @@ if __name__ == "__main__":
     gain_ratios = find_target_luminance(fw.get_main_frame())
     result = asta_filter(fw, gain_ratios)
     result[:,:,0] = tonemap_spatially_uniform(result)
-    frame_queue.writeVidFrameConvertYUV2BGR(result,vid)
+    frame_queue.writeVidFrameConvertYUV2BGR(result)
     print "Done with a frame"
     fw = frame_queue.get_next_frame()
 
