@@ -23,16 +23,10 @@ def asta_filter(frame_window, targets):
   (numerators, normalizers), short_of_target = temporal_filter(frame_window,
                                                                targets, 92)
 
- # print short_of_target.max(),short_of_target.min(),normalizers.max(), normalizers.min(),stats.mode(normalizers,axis=None), np.median(normalizers),np.average(normalizers)
-
-  #I AM LOSING INFO HERE BY ROUNDING BEFORE THE BILATERAL...PROBLEM?
-  temp_filtered_lum = np.rint(numerators / normalizers)
-
-  #put back together bc spatial filter on lum and chrom, not just lum
-  frame[:,:,0] = temp_filtered_lum
+  frame[:,:,0] = numerators / normalizers
   
   result_frame = spatial_filter(frame, short_of_target)
-  #return frame
+
   return result_frame
 
 
@@ -63,16 +57,13 @@ def temporal_filter(frame_window, target_numbers, max_error):
 
   # calculate how short we are in the number of pixels we could average to
   # determine how much to use spatial filter
-  targets_for_pixels = filter_keys
-
   ideal_weight = np.ones_like(filter_keys)
   ideal_weight *= get_weights_list(frame_window.curr_frame_index, kernel_dict)[0]
   ideal_weight *= intensity_gaussian(0, 4.0)
   ideal_weight *= filter_keys
 
   distances_short_of_target = ideal_weight - normalizers
-  print stats.mode(distances_short_of_target,
-                   axis=None), distances_short_of_target.max(), distances_short_of_target.min(),normalizers.max(),stats.mode(normalizers,
+  print normalizers.min(),normalizers.max(),stats.mode(normalizers,
                    axis=None)
   return (numerators, normalizers), distances_short_of_target
 
@@ -140,14 +131,7 @@ def average_temporally_adjacent_pixels(
 
   numerators, normalizers = np.zeros_like(filter_keys), np.zeros_like(filter_keys)
 
-
   frame = frame_window.get_main_frame()
-
-  #fix frame window class
-#  ideal_weight = np.ones_like(filter_keys)
- # ideal_weight *=  get_weights_list(frame_window.curr_frame_index, kernel_dict)[0]
- # ideal_weight *= intensity_gaussian(0,7.0)
- # ideal_weight *= filter_keys
 
   for i in xrange(0,frame_window.get_length()):
 
@@ -164,16 +148,11 @@ def average_temporally_adjacent_pixels(
                              6
     )
 
-    e = intensity_gaussian(pixel_distance_weights, 4.0)
-    total_gaussian_weights = e * frame_distance_weights
-    l = np.copy(filter_keys)
+    intensity_weights = intensity_gaussian(pixel_distance_weights, 4.0)
+    total_gaussian_weights = intensity_weights * frame_distance_weights
+
     numerators += total_gaussian_weights * other_frame[:,:,0]
     normalizers += total_gaussian_weights
- #   l += 0.1
-  #  while l.max()> 1.0:
-   #     normalizers += np.where(l > 1.0,total_gaussian_weights, 0.0)
-    #    numerators += np.where(l > 1.0, (total_gaussian_weights * other_lum), 0.0)
-     #   l -= 1.0
 
   return numerators, normalizers
 

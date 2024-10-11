@@ -35,7 +35,8 @@ def  find_target_luminance(vid_frame):
   throwaway_blurred = cv2.GaussianBlur(throwaway_copy,(11,11),0)
   result = tone_map_vectorized(throwaway_blurred, 34)
   result *= 255
-  return divide_if_nonzero_vec(result, throwaway_blurred[:, :, 0])
+ # return divide_if_nonzero_vec(result, throwaway_blurred[:, :, 0])
+  return divide_if_nonzero_vec(result, vid_frame[:,:,0])
 
 
 def tonemap_spatially_uniform(vid_frame):

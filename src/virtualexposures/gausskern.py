@@ -96,14 +96,9 @@ if __name__ == "__main__":
 
   for i in xrange(1, 20):
     pass
-  #  print "MIN 4, MAX 16, ARG ",str(i),"=",distance_metric(i, 4, 16)
-
   
   j = np.array([[1.0,2.0,3.0],[4.0,5.0,6.0],[7.0,8.0,9.0]])
   l = np.array([[1.0,2.0,3.0],[4.0,5.0,6.0],[7.0,8.0,9.0]])
   m = np.array([[2.0,5.5,6.6],[7.7,15.0,0.0],[5.5,1.0,7.0]])
-  print distance_metric2(5.5,1.0,7.0)
-  print distance_metric(m,1.0,7.0)
-  #print  get_neighborhood_diffs(j, l, 4, 16)
 
  # print calc_temp_std_dev_get_kernel(2.0, 19)
