@@ -108,6 +108,33 @@ class FrameQueue(object):
     #is there a bug in incrementing frame index in framewindow
     return FrameWindow(self.frame_window,self.current_frame_index)
 
+  def get_next_frame(self):
+    """This returns a window of frames around the current one.  THe only logic
+     comes in the beginning and the end when we have to communicate that the
+     current frame is not in the middle of the window"""
+
+    if self.current_frame > self.frames_in_video:
+      return None
+    half_window = self.frames_in_window // 2 + 1
+
+    if self.current_frame <= half_window:
+      self.current_frame_index += 1
+
+    #advance if out from the beginning and still frames left
+    elif self.current_frame <= (self.frames_in_video - (half_window - 1)):
+
+         success,image = self.readVidFrameConvertBGR2YUV()
+
+         self.frame_window.append(image)
+         self.frame_window.pop(0)
+
+    else:
+      self.current_frame_index += 1
+
+    #THIS LINE MUST BE RIGHT BEFORE RETURN STATEMENT SO I DONT MESS UP LOGIC
+    self.current_frame +=1
+    #is there a bug in incrementing frame index in framewindow
+    return FrameWindow(self.frame_window,self.current_frame_index)
 
 class FrameWindow(object):
   """This is the window around the central frame"""
@@ -138,7 +165,7 @@ class FrameWindow(object):
     
 if __name__ == "__main__":
   try:
-    frame_queue = FrameQueue('large6.mp4',29)
+    frame_queue = FrameQueue('large.mp4',29)
   except ValueError as err:
     sys.stderr.write(err.message)
     sys.exit()

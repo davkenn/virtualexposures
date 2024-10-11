@@ -87,23 +87,15 @@ def spatial_filter(temp_filtered_frame, distances_short_of_targets):
   """This function chooses a final pixel value with either no
   spatial filtering, or varying degrees of spatial filtering depending
   on how short the temporal filter came to gathering enough pixels"""
-  return temp_filtered_frame
- 
+  print "CALLED"
+ # return temp_filtered_frame
   #TODO: add a median filtering step before bilateral filter step
 
-#  some_filtering = cv2.bilateralFilter(
- #                      temp_filtered_frame,
-  #                  11,
-   #          41,
-   #         21
- # )
-
-
   some_filtering = cv2.bilateralFilter(
-                       temp_filtered_frame,
-                    15,
-             141,
-            81
+                       temp_filtered_frame.astype(np.float32),
+                    5,
+             15,
+            15
   )
 
 #  lots_filtering = cv2.bilateralFilter(
@@ -136,11 +128,11 @@ def spatial_filter(temp_filtered_frame, distances_short_of_targets):
 
   a_lot_short_elems = np.greater_equal(dists_short,middles)
 
-  lots_space_filter_vals_added = np.where(
-                                    a_lot_short_elems,
-                                    lots_filtering,
-                                    some_space_filter_vals_added
-  )
+#  lots_space_filter_vals_added = np.where(
+ #                                   a_lot_short_elems,
+  #                                  lots_filtering,
+   #                                 some_space_filter_vals_added
+#  )
 
   #return lots_space_filter_vals_added
   return filla

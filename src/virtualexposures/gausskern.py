@@ -41,7 +41,6 @@ def calc_temp_std_dev_get_kernel(target_num,intensity_sigma):
     # But if I'm returning one for the center isn't this going to register as
     #getting too many pixel?
     kernel = get_1d_kernel(size,0.0) * 0.0
-
    # a[len(a) // 2] = 1.0
     kernel[len(kernel)//2] = 0.5
     return kernel
@@ -64,21 +63,9 @@ def calc_temp_std_dev_get_kernel(target_num,intensity_sigma):
     summation = kernel * summation
     summation = summation.sum()
 
-
-
-
-  #paper changes both neighborhood size and std dev dynamically..
-  #I have a fixed size neighborhood and just change std dev dynamically
-
- # if window_size < 19: #if I want smaller window must change atten
-  #  sys.stderr.write("window size is too small to handle all cases")
-   # sys.exit()
-
   return kernel
 
 
-#TODO: I am normalizing before the operation in getting neighborhood
- #, is this wrong?
 def get_neighborhood_compare_kernel(size, std_dev):
   """Calls get2DKernel to create a gaussian neighborhood comparison kernel.
   It sets center pixel to zero because a pixel is not included in its neighborhood 
@@ -90,6 +77,7 @@ def get_neighborhood_compare_kernel(size, std_dev):
   kernel = kernel / kernel.sum() #normalize
 
   return kernel
+
 
 def get_neighborhood_diffs(neighborhood_1, neighborhood_2):
   """This function will calculate the differences between two
