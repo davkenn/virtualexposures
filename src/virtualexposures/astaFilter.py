@@ -1,4 +1,7 @@
 from __future__ import division
+
+from inspect import currentframe
+
 import cv2
 import numpy as np
 from numpy.random import normal
@@ -47,9 +50,21 @@ def temporal_filter(frame_window, target_numbers, max_error):
 
   intensity_sigma = 4.0
   kernel_dict = make_gaussian_kernels(frame_window,intensity_sigma)
-
   filter_keys = get_nearest_filter_keys(target_numbers)
 
+  # calculate how short we are in the number of pixels we could average to
+  # determine how much to use spatial filter
+  ideal_weight = np.ones_like(filter_keys)
+
+  ideal_weight *= kernel_dict[1.0].item(frame_window.curr_frame_index)
+  ls = get_weights_list(frame_window.curr_frame_index, kernel_dict)
+
+  f = np.vectorize(lambda x: kernel_dict[x].item(frame_window.curr_frame_index))
+  e = f(filter_keys)
+
+#  ideal_weight *= a
+  ideal_weight *= intensity_gaussian(0, 4.0)
+  ideal_weight *= filter_keys
 
   numerators, normalizers = average_temporally_adjacent_pixels(
                             frame_window,
@@ -58,18 +73,15 @@ def temporal_filter(frame_window, target_numbers, max_error):
                             max_error
   )
 
-  # calculate how short we are in the number of pixels we could average to
-  # determine how much to use spatial filter
-  ideal_weight = np.ones_like(filter_keys)
-#  ideal_weight *= get_weights_list(frame_window.curr_frame_index, kernel_dict)[0]
-  ideal_weight *= intensity_gaussian(0, 4.0)
-  ideal_weight *= filter_keys
-
   distances_short_of_target = ideal_weight - normalizers
-  print distances_short_of_target.min(),distances_short_of_target.max(),stats.mode(distances_short_of_target,
+  print normalizers.min(),normalizers.max(),stats.mode(normalizers,
                    axis=None)
+  print ideal_weight
   return (numerators, normalizers), distances_short_of_target
 
+
+def get_ideal_weight(filter_keys,gaussian_weights):
+    return make_weights_array(filter_keys,gaussian_weights)
 
 def spatial_filter(temp_filtered_frame, distances_short_of_targets):
   """This function chooses a final pixel value with either no
