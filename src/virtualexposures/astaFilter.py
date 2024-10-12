@@ -115,7 +115,9 @@ class AstaFilter(object):
 
     return output_2
 
-  def temporal_filter(self,frame_window, pixel_targets,gaussian_space_kernels):
+
+  @staticmethod
+  def temporal_filter(frame_window, pixel_targets, gaussian_space_kernels):
     """This function averages the current frame pixel intensity values with the
     values of the same pixel in surrounding frames.  It takes a gaussian average
     of these nearby pixels with weight decreasing with temporal distance from
@@ -132,7 +134,6 @@ class AstaFilter(object):
                                         gaussian_space_kernels,
                                         frame_window.is_frame_at_edges()
     )
-
     # calculate how short we are in the number of pixels we could average to
     # determine how much to use spatial filter
     rounded_targets = get_nearest_dict_keys(pixel_targets)
@@ -149,10 +150,10 @@ class AstaFilter(object):
     ideal_weight *= intensity_gaussian(0, 4.0)
     ideal_weight *= rounded_targets
 
-    numerators, normalizers = average_temporally_adjacent_pixels(
-      frame_window,
-      gaussian_space_kernels,
-      rounded_targets
+    numerators, normalizers = AstaFilter.average_temporally_adjacent_pixels(
+                                         frame_window,
+                                         gaussian_space_kernels,
+                                         rounded_targets
     )
 
     distances_short_of_target = ideal_weight - normalizers
@@ -177,6 +178,40 @@ class AstaFilter(object):
 
     return dict(zip(kernel_keys, all_kernels))
 
+  @staticmethod
+  def average_temporally_adjacent_pixels(
+            frame_window,
+            gaussian_space_kernels,
+            filter_keys
+  ):
+
+    numerators, normalizers = np.zeros_like(filter_keys), np.zeros_like(filter_keys)
+
+    frame = frame_window.get_main_frame()
+
+    for i in xrange(0, frame_window.get_length()):
+      other_frame = frame_window.frame_list[i]
+      curr_gauss_weights = get_weights_list(i, gaussian_space_kernels)
+
+      frame_distance_weights = np.copy(filter_keys)
+
+      frame_distance_weights = gaussian_space_kernels[frame_distance_weights]
+      make_weights_array(frame_distance_weights,
+                         curr_gauss_weights)  # in-place change
+
+      pixel_distance_weights = get_neighborhood_diffs(
+                               frame[:, :, 0],
+                               other_frame[:, :, 0]
+      )
+
+      intensity_weights = intensity_gaussian(pixel_distance_weights, 4.0)
+      total_gaussian_weights = frame_distance_weights * intensity_weights
+
+      numerators += total_gaussian_weights * other_frame[:, :, 0]
+      normalizers += total_gaussian_weights
+
+    return numerators, normalizers
+
 
   @staticmethod
   def rearrange_gaussian_kernels(gaussian_space_kernels,distance_off_center):
@@ -190,9 +225,7 @@ class AstaFilter(object):
       return gaussian_space_kernels
 
     for key in gaussian_space_kernels:
-
    #   zero_frames = np.array([[0.0] * abs(distance_off_center)])
-
       zero_frames = np.array([[0.0]] * abs(distance_off_center))
 
       if distance_off_center < 0:  # frame is near beginning of video
@@ -219,40 +252,6 @@ class AstaFilter(object):
         )
 
     return gaussian_space_kernels
-
-def average_temporally_adjacent_pixels(
-    frame_window,
-    kernel_dict,
-    filter_keys
-):
-
-  numerators, normalizers = np.zeros_like(filter_keys), np.zeros_like(filter_keys)
-
-  frame = frame_window.get_main_frame()
-
-  for i in xrange(0,frame_window.get_length()):
-
-    other_frame = frame_window.frame_list[i]
-    curr_gauss_weights = get_weights_list(i, kernel_dict)
-    frame_distance_weights = np.copy(filter_keys)
-
-    make_weights_array(frame_distance_weights, curr_gauss_weights) #in-place change
-
-    pixel_distance_weights = get_neighborhood_diffs(
-                             frame[:,:,0],
-                             other_frame[:,:,0]
-    )
-
-    intensity_weights = intensity_gaussian(pixel_distance_weights, 4.0)
-    total_gaussian_weights =   frame_distance_weights * intensity_weights
-
-    numerators += total_gaussian_weights * other_frame[:,:,0]
-    normalizers += total_gaussian_weights
-
-  return numerators, normalizers
-
-
-
 
 def get_weights_list(index, kernel_dict):
   """This function will return the gaussian distance weights based on index,
