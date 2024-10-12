@@ -11,8 +11,6 @@ from functools import partial
 from tonemap import find_target_luminance,tonemap_spatially_uniform
 
 
-
-
 class AstaFilter(object):
   """Surrounding frame count is the number of frames counting itself.
    Probably need a diff number of surrounding frames for each frame  but
@@ -94,12 +92,13 @@ class AstaFilter(object):
     )
 
     distances_short_of_target = ideal_weight - normalizers
-    # print distances_short_of_target.min(),distances_short_of_target.max(),stats.mode(distances_short_of_target,axis=None),np.average(distances_short_of_target)
+    print distances_short_of_target.min(),distances_short_of_target.max(),stats.mode(distances_short_of_target,axis=None),np.average(distances_short_of_target)
     print normalizers.min(), normalizers.max(), stats.mode(normalizers,axis=None), np.average(normalizers)
 
     # also think if you should compare the denom sizes after you just changed the kernel to super big. see if it gathered more weight before
 
     return (numerators, normalizers), distances_short_of_target
+
 
   @staticmethod
   def spatial_filter(temp_filtered_frame, distances_short_of_targets):
@@ -186,15 +185,8 @@ class AstaFilter(object):
 
     for i in xrange(0, frame_window.get_length()):
       other_frame = frame_window.frame_list[i]
-      curr_gauss_weights = get_weights_list(i, gaussian_space_kernels)
-
-      frame_distance_weights = np.copy(rounded_targets)
-
 
       p = np.vectorize( lambda x : gaussian_space_kernels[x][i])
-
-      make_weights_array(frame_distance_weights,
-                         curr_gauss_weights)  # in-place change
 
       frame_distance_weights = p(rounded_targets)
 
@@ -251,45 +243,6 @@ class AstaFilter(object):
         )
 
     return gaussian_space_kernels
-
-def get_weights_list(index, kernel_dict):
-  """This function will return the gaussian distance weights based on index,
-  which is both the frame number in the queue and the index to the proper
-  gaussian weight"""
-  weights_list = []
-  #go through dict in order
-  for key in sorted(kernel_dict.iterkeys()):
-    weights_list.append(kernel_dict[key].item(index))
-
-  return weights_list
-
-
-def make_weights_array(filter_keys, weights_list):
-  """Takes a numpy array of equal dimension to the pixel lum array filled with
-  values of about how many pixels need to be combined at each pixel
-  (filter_keys).  Associates these with the correct elements in weights_list
-  which holds the gaussian weights for the different filter_keys.  Will return
-  a numpy array of pixel lum size with values of spatial gaussian weights"""
-#what about my filter key 9.5? why are these diff lengths
-  filter_keys[filter_keys > 8.6] = weights_list[16] #9.0 weight
-  filter_keys[filter_keys > 8.1] = weights_list[15] #8.5 weight
-  filter_keys[filter_keys > 7.6] = weights_list[14] #8.0 weight
-  filter_keys[filter_keys > 7.1] = weights_list[13] #7.5 weight
-  filter_keys[filter_keys > 6.6] = weights_list[12] #7.0 weight
-  filter_keys[filter_keys > 6.1] = weights_list[11] #6.5 weight
-  filter_keys[filter_keys > 5.6] = weights_list[10] #6.0 weight
-  filter_keys[filter_keys > 5.1] = weights_list[9] #5.5 weight
-  filter_keys[filter_keys > 4.6] = weights_list[8] #5.0 weight
-  filter_keys[filter_keys > 4.1] = weights_list[7] #4.5 weight
-  filter_keys[filter_keys > 3.6] = weights_list[6] #4.0 weight
-  filter_keys[filter_keys > 3.1] = weights_list[5] #3.5 weight
-  filter_keys[filter_keys > 2.6] = weights_list[4] #3.0 weight
-  filter_keys[filter_keys > 2.1] = weights_list[3] #2.5 weight
-  filter_keys[filter_keys > 1.6] = weights_list[2] #2.0 weight
-  filter_keys[filter_keys > 1.1] = weights_list[1] #1.5 weight
-  filter_keys[filter_keys == 1.0] = weights_list[0] #1.0 weight
-
-  return filter_keys
 
 
 def get_nearest_dict_keys(target_nums):
