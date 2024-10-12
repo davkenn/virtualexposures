@@ -1,12 +1,13 @@
 import pytest
 from astaFilter import AstaFilter
+from src.virtualexposures.gausskern import intensity_gaussian
 
 
 class TestAstaFilter:
   @pytest.fixture
   def spatial_kernels(self):
     """This fixture will only be available within the scope of TestGroup"""
-    return AstaFilter.make_gaussian_kernels(4.0)
+    return AstaFilter.make_gaussian_kernels()
 
   def test_rearrange_moves_right(self,spatial_kernels):
     assert (AstaFilter.rearrange_gaussian_kernels(spatial_kernels,-14)[0][0]

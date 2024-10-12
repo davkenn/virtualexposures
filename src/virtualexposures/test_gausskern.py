@@ -2,7 +2,8 @@ import numpy as np
 import pytest
 
 from gausskern import (get_neighborhood_diffs, get_kernel_with_dynamic_std_dev,
-                       get_kernel_center, intensity_gaussian)
+                       get_kernel_center, intensity_gaussian,
+                       _intensity_gaussian)
 
 
 
@@ -16,7 +17,6 @@ class TestGausskern:
         assert get_neighborhood_diffs(j, l)[0, 1] == 0.0
 
 
-
     def test_calc_temp_std_dev_get_kernel(self):
         a = get_kernel_with_dynamic_std_dev(2.0, 4.0)
         b = get_kernel_with_dynamic_std_dev(3.0, 4.0)
@@ -28,36 +28,30 @@ class TestGausskern:
 
 
     def test_intensity_gaussian_perfect_match(self):
-        a = intensity_gaussian(0.0,1.0)
-        b = intensity_gaussian(0.0,2.0)
-        c = intensity_gaussian(0.0,3.0)
-        d = intensity_gaussian(0.0,4.0)
+        a = _intensity_gaussian(0.0,1.0)
+        b = _intensity_gaussian(0.0,2.0)
+        c = _intensity_gaussian(0.0,3.0)
+        d = _intensity_gaussian(0.0,4.0)
 
         assert a > b > c > d
 
     def test_intensity_gaussian_bad_match(self):
-        a = intensity_gaussian(5.0,1.0)
-        b = intensity_gaussian(5.0,2.0)
-        c = intensity_gaussian(5.0,3.0)
-        d = intensity_gaussian(5.0,4.0)
+        a = _intensity_gaussian(5.0,1.0)
+        b = _intensity_gaussian(5.0,2.0)
+        c = _intensity_gaussian(5.0,3.0)
+        d = _intensity_gaussian(5.0,4.0)
 
         assert a < b < c < d
 
     def test_intensity_gaussian_edges(self):
-        a = intensity_gaussian(4.0, 4.0)
-        b = intensity_gaussian(5.0, 4.0)
-        c = intensity_gaussian(6.0, 4.0)
-        d = intensity_gaussian(7.0, 4.0)
+        a = intensity_gaussian(4.0)
+        b = intensity_gaussian(5.0)
+        c = intensity_gaussian(6.0)
+        d = intensity_gaussian(7.0)
 
         assert a > b > c > d
 
-    def test_intensity_gaussian_edges(self):
-        a = intensity_gaussian(4.0, 4.0)
-        b = intensity_gaussian(5.0, 4.0)
-        c = intensity_gaussian(6.0, 4.0)
-        d = intensity_gaussian(7.0, 4.0)
 
-        assert a > b > c > d
 
 
 

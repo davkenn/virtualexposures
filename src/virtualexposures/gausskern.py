@@ -2,6 +2,8 @@ from __future__ import division
 import cv2
 import numpy as np
 import sys
+
+INTENSITY_SIGMA = 2.5
 #if I normalize here like I did in neighborhood kernel I think I would
 #just be doing it twice but it wouldnt affect correctness because im normalizing
 #again anyways
@@ -39,25 +41,26 @@ def get_kernel_with_dynamic_std_dev(target_num, intensity_sigma):
   # on pixel counts would be off probably
 
   if target_num > 10.0:
-    sys.stderr.write("Mapping should not go over 9")
+    sys.stderr.write("Mapping should not go over 9.5")
     sys.exit()
-  target_before_distance_sigma = intensity_gaussian(0,intensity_sigma) * 2.0 * target_num
+
+  target_before_distance_sigma = intensity_gaussian(0.0) * 2.0 * target_num
 
 #move this out of the loop
   std_dev = 0.5
   summation = 0.0
-  kernel = get_1d_kernel(size, std_dev)
-  total = get_kernel_center(kernel) * target_before_distance_sigma
+  space_kernel = get_1d_kernel(size, std_dev)
+  total = get_kernel_center(space_kernel) * target_before_distance_sigma
   while summation < total:
-    total = target_before_distance_sigma * get_kernel_center(kernel)
-    kernel = get_1d_kernel(size,std_dev)
+    total = target_before_distance_sigma * get_kernel_center(space_kernel)
+    space_kernel = get_1d_kernel(size,std_dev)
     std_dev += 0.1
-    summation = np.zeros_like(kernel)
-    summation =intensity_gaussian(summation,intensity_sigma)
-    summation = kernel * summation
+#    summation = np.zeros_like(space_kernel)
+    summation = intensity_gaussian(np.zeros_like(space_kernel))
+    summation *= summation
     summation = summation.sum()
 
-  return kernel
+  return space_kernel
 
 
 def get_neighborhood_compare_kernel(size, std_dev):
@@ -91,11 +94,14 @@ def get_neighborhood_diffs(neighborhood_1, neighborhood_2):
   neigh_diffs = np.array(neighborhood_diffs,dtype='float64')
 
 
-def intensity_gaussian(x, sigma= 1.0):
+def intensity_gaussian(pixel_value_difference):
+  return _intensity_gaussian(pixel_value_difference)
+
+def _intensity_gaussian(pixel_value_difference, sigma= INTENSITY_SIGMA):
     """
     Computes the Gaussian function for a given x and standard deviation (sigma).
     """
-    return (1 / (sigma * np.sqrt(2 * np.pi))) * np.exp(
-      -0.5 * ((x ** 2) / (sigma ** 2)))
+    return ((1 / (sigma * np.sqrt(2 * np.pi))) *
+            np.exp(-0.5 * ((pixel_value_difference ** 2) / (sigma ** 2))))
 
 

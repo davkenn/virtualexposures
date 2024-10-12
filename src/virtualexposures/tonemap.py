@@ -36,7 +36,7 @@ def divide_if_nonzero_vec(num_array, denom_array):
 #i fixed a bug here but shouldnt i do it like before
 def  find_target_luminance(vid_frame):
   throwaway_copy = np.copy(vid_frame)
-  throwaway_blurred = cv2.GaussianBlur(throwaway_copy,(7,7),0)
+  throwaway_blurred = cv2.GaussianBlur(throwaway_copy,(5,5),0)
   result = tone_map_vectorized(throwaway_blurred, 34)
 
   result *= 255

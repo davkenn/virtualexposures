@@ -1,29 +1,20 @@
 from __future__ import division
 from inspect import currentframe
 from numpy.random import normal
-from gausskern import get_neighborhood_diffs,get_kernel_with_dynamic_std_dev
+from gausskern import get_neighborhood_diffs, get_kernel_with_dynamic_std_dev
+from gausskern import INTENSITY_SIGMA
 from gausskern import intensity_gaussian
 from scipy import stats
 import cv2
-import sys
 import numpy as np
-from functools import partial
-from tonemap import find_target_luminance,tonemap_spatially_uniform
-
 
 class AstaFilter(object):
   """Surrounding frame count is the number of frames counting itself.
    Probably need a diff number of surrounding frames for each frame  but
    the best thing to do is probably just overestimate and use less if need be"""
-  def __init__(self,intensity_sigma):
+  def __init__(self):
 
-    self.gaussian_space_kernels = self.make_gaussian_kernels(intensity_sigma)
-    self.intensity_sigma = intensity_sigma
-    self.gaussian_intensity_kernel = partial(
-                                     intensity_gaussian,
-                                     sigma = intensity_sigma,
-
-    )
+    self.gaussian_space_kernels = self.make_gaussian_kernels(INTENSITY_SIGMA)
 
 
   def asta_filter(self, frame_window,pixel_targets):
@@ -82,7 +73,7 @@ class AstaFilter(object):
     ideal_weight = np.ones_like(rounded_targets)
 
     ideal_weight *= space_kernel
-    ideal_weight *= intensity_gaussian(0, 2.5)
+    ideal_weight *= intensity_gaussian(0.0)
     ideal_weight *= rounded_targets
 
     numerators, normalizers = AstaFilter.average_temporally_adjacent_pixels(
@@ -90,8 +81,10 @@ class AstaFilter(object):
                                          gaussian_space_kernels,
                                          rounded_targets
     )
-    print rounded_targets.max(),rounded_targets.min()
+
     distances_short_of_target = ideal_weight - normalizers
+    print rounded_targets.max(),rounded_targets.min()
+
     print distances_short_of_target.min(),distances_short_of_target.max(),stats.mode(distances_short_of_target,axis=None),np.average(distances_short_of_target)
     print normalizers.min(), normalizers.max(), stats.mode(normalizers,axis=None), np.average(normalizers)
 
@@ -199,7 +192,7 @@ class AstaFilter(object):
                                other_frame[:, :, 0]
       )
 
-      intensity_weights = intensity_gaussian(intensity_distances, 2.5)
+      intensity_weights = intensity_gaussian(intensity_distances)
       total_gaussian_weights = space_distance_weights * intensity_weights
 
       numerators += total_gaussian_weights * other_frame[:, :, 0]

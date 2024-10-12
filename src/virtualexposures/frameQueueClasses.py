@@ -10,9 +10,9 @@ class FrameQueue(object):
    Probably need a diff number of surrounding frames for each frame  but
    the best thing to do is probably just overestimate and use less if need be"""
   def __init__(self, video_filename, surrounding_frame_count):
+
     self.video_filename = video_filename
-    #position of current frame in window
-    self.current_frame_index = -1
+    self.current_frame_index = -1 #position of current frame in window
     #overall frame number
     self.current_frame = 1
     self.frame_window = []
@@ -22,17 +22,13 @@ class FrameQueue(object):
     if not self.video_capt.isOpened():
       raise ValueError("Invalid input file: " + video_filename)
 
-#    self.fourcc = int(self.video_capt.get(cv2.CAP_PROP_FOURCC))
-    fps =  self.video_capt.get(cv2.CAP_PROP_FPS)
     dims = (int(self.video_capt.get(cv2.CAP_PROP_FRAME_WIDTH)),
                    int(self.video_capt.get(cv2.CAP_PROP_FRAME_HEIGHT)))
 
     self.video_writer = cv2.VideoWriter('njj.avi',
-                                        cv2.VideoWriter.fourcc(
-                                            'M', 'J', 'P','G'),
-                                        fps,
+                                        cv2.VideoWriter.fourcc('M','J','P','G'),
+                                        self.video_capt.get(cv2.CAP_PROP_FPS),
                                         dims
-
     )
 
     self.frames_in_video = self.count_frames()
@@ -138,19 +134,17 @@ class FrameWindow(object):
     
 if __name__ == "__main__":
   try:
-    frame_queue = FrameQueue('large4.mp4',29)
+    frame_queue = FrameQueue('large2.mp4',29)
   except ValueError as err:
     sys.stderr.write(err.message)
     sys.exit()
 
   fw = frame_queue.get_next_frame()
 
-  filter_var = AstaFilter(2.5)
-
+  filter_var = AstaFilter()
 
   while fw:
     gain_ratios = find_target_luminance(fw.get_main_frame())
-
     assert np.all(np.array(list(map(lambda x: x < 10.0, gain_ratios))))
     result = filter_var.asta_filter(fw, gain_ratios)
     result[:,:,0] = tonemap_spatially_uniform(result)
