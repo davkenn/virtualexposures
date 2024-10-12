@@ -1,4 +1,7 @@
 from __future__ import division
+
+from xmllib import space
+
 import cv2
 import numpy as np
 import sys
@@ -55,9 +58,8 @@ def get_kernel_with_dynamic_std_dev(target_num, intensity_sigma):
     total = target_before_distance_sigma * get_kernel_center(space_kernel)
     space_kernel = get_1d_kernel(size,std_dev)
     std_dev += 0.1
-#    summation = np.zeros_like(space_kernel)
-    summation = intensity_gaussian(np.zeros_like(space_kernel))
-    summation *= summation
+    #recheck this
+    summation = intensity_gaussian(np.zeros_like(space_kernel)) * space_kernel
     summation = summation.sum()
 
   return space_kernel
