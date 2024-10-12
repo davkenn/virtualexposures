@@ -211,17 +211,17 @@ class AstaFilter(object):
     number of frames from before and after the current frame.  This function
     will rearrange the gaussian kernel in these situations so that the weight
     of each frame still decreases with temporal distance from the current frame."""
-
+    copy = dict(gaussian_space_kernels)
     if distance_off_center == 0:
-      return gaussian_space_kernels
+      return copy
 
     for key in gaussian_space_kernels:
-   #   zero_frames = np.array([[0.0] * abs(distance_off_center)])
+    #  zero_frames = np.array([[0.0] * abs(distance_off_center)])
       zero_frames = np.array([[0.0]] * abs(distance_off_center))
 
       if distance_off_center < 0:  # frame is near beginning of video
 
-        gaussian_space_kernels[key] = (
+        copy[key] = (
           np.concatenate(
             [
               gaussian_space_kernels[key][-distance_off_center:],
@@ -232,7 +232,7 @@ class AstaFilter(object):
 
       elif distance_off_center > 0:  # frame i/s near end of video
 
-        gaussian_space_kernels[key] = (
+        copy[key] = (
           np.concatenate(
             [
               zero_frames,
@@ -242,7 +242,7 @@ class AstaFilter(object):
           )
         )
 
-    return gaussian_space_kernels
+    return copy
 
 
 def get_nearest_dict_keys(target_nums):
