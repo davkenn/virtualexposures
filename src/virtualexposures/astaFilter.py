@@ -1,7 +1,7 @@
 from __future__ import division
 from inspect import currentframe
 from numpy.random import normal
-from gausskern import get_neighborhood_diffs,calc_temp_std_dev_get_kernel
+from gausskern import get_neighborhood_diffs,get_kernel_with_dynamic_std_dev
 from gausskern import intensity_gaussian
 from scipy import stats
 import cv2
@@ -82,7 +82,7 @@ class AstaFilter(object):
     ideal_weight = np.ones_like(rounded_targets)
 
     ideal_weight *= space_kernel
-    ideal_weight *= intensity_gaussian(0, 4.0)
+    ideal_weight *= intensity_gaussian(0, 2.5)
     ideal_weight *= rounded_targets
 
     numerators, normalizers = AstaFilter.average_temporally_adjacent_pixels(
@@ -90,7 +90,7 @@ class AstaFilter(object):
                                          gaussian_space_kernels,
                                          rounded_targets
     )
-
+    print rounded_targets.max(),rounded_targets.min()
     distances_short_of_target = ideal_weight - normalizers
     print distances_short_of_target.min(),distances_short_of_target.max(),stats.mode(distances_short_of_target,axis=None),np.average(distances_short_of_target)
     print normalizers.min(), normalizers.max(), stats.mode(normalizers,axis=None), np.average(normalizers)
@@ -111,8 +111,8 @@ class AstaFilter(object):
     some_filtering = cv2.bilateralFilter(
       temp_filtered_frame.astype(np.float32),
       5,
-      15,
-      15
+      35,
+      35
     )
 
     #  lots_filtering = cv2.bilateralFilter(
@@ -163,10 +163,10 @@ class AstaFilter(object):
     kernel_keys = []
     all_kernels = []
 
-    for i in xrange(0,20):  # builds 1-d gaussian kernels of length equal to frame window size
+    for i in xrange(2,20):  # builds 1-d gaussian kernels of length equal to frame window size
       kernel_keys.append(i / 2)  # with std. devs between .5 and 9.5
       all_kernels.append(
-        calc_temp_std_dev_get_kernel(i / 2, intensity_sigma)
+        get_kernel_with_dynamic_std_dev(i / 2, intensity_sigma)
       )
 
     return dict(zip(kernel_keys, all_kernels))
@@ -178,23 +178,32 @@ class AstaFilter(object):
             rounded_targets
   ):
 
-    numerators, normalizers = np.zeros_like(rounded_targets), np.zeros_like(rounded_targets)
+    numerators = np.zeros_like(rounded_targets)
+    normalizers= np.zeros_like(rounded_targets)
 
     frame = frame_window.get_main_frame()
 
     for i in xrange(0, frame_window.get_length()):
+
+   #   cache = [-1.0] * len(gaussian_space_kernels) * 2
+     # for j in range(2, len(gaussian_space_kernels)):
+      #  cache[j] = gaussian_space_kernels[j / 2][i]
+      ls = get_weights_list(i,gaussian_space_kernels)
       other_frame = frame_window.frame_list[i]
 
-      p = np.vectorize( lambda x : gaussian_space_kernels[x][i])
+      p = np.vectorize(lambda x : gaussian_space_kernels[x].item(i))
 
-      frame_distance_weights = p(rounded_targets)
+
+      frame_distance_weights = np.ones_like(rounded_targets)
+      frame_distance_weights *= p(rounded_targets)
+     # frame_distance_weights *= cache[frame_distance_weights*2]
 
       pixel_distance_weights = get_neighborhood_diffs(
                                frame[:, :, 0],
                                other_frame[:, :, 0]
       )
 
-      intensity_weights = intensity_gaussian(pixel_distance_weights, 4.0)
+      intensity_weights = intensity_gaussian(pixel_distance_weights, 2.5)
       total_gaussian_weights = frame_distance_weights * intensity_weights
 
       numerators += total_gaussian_weights * other_frame[:, :, 0]
@@ -243,6 +252,16 @@ class AstaFilter(object):
 
     return copy
 
+def get_weights_list(index, kernel_dict):
+  """This function will return the gaussian distance weights based on index,
+  which is both the frame number in the queue and the index to the proper
+  gaussian weight"""
+  weights_list = []
+  #go through dict in order
+  for key in sorted(kernel_dict.iterkeys()):
+    weights_list.append(kernel_dict[key].item(index))
+
+  return weights_list
 
 def get_nearest_dict_keys(target_nums):
   """Keys in the filter dict are at 1, 1.5, 2, etc..."""

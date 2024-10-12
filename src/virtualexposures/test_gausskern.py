@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from gausskern import (get_neighborhood_diffs, calc_temp_std_dev_get_kernel,
+from gausskern import (get_neighborhood_diffs, get_kernel_with_dynamic_std_dev,
                        get_kernel_center, intensity_gaussian)
 
 
@@ -18,10 +18,10 @@ class TestGausskern:
 
 
     def test_calc_temp_std_dev_get_kernel(self):
-        a = calc_temp_std_dev_get_kernel(2.0,4.0)
-        b = calc_temp_std_dev_get_kernel(3.0,4.0)
-        c = calc_temp_std_dev_get_kernel(6.0, 4.0)
-        d = calc_temp_std_dev_get_kernel(7.0, 4.0)
+        a = get_kernel_with_dynamic_std_dev(2.0, 4.0)
+        b = get_kernel_with_dynamic_std_dev(3.0, 4.0)
+        c = get_kernel_with_dynamic_std_dev(6.0, 4.0)
+        d = get_kernel_with_dynamic_std_dev(7.0, 4.0)
 
         assert (get_kernel_center(a) > get_kernel_center(b) >
                 get_kernel_center(c) > get_kernel_center(d))

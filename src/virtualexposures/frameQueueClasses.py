@@ -165,14 +165,14 @@ class FrameWindow(object):
     
 if __name__ == "__main__":
   try:
-    frame_queue = FrameQueue('large.mp4',29)
+    frame_queue = FrameQueue('large6.mp4',25)
   except ValueError as err:
     sys.stderr.write(err.message)
     sys.exit()
 
   fw = frame_queue.get_next_frame()
 
-  filter_var = AstaFilter(4.0)
+  filter_var = AstaFilter(2.5)
 
 
   while fw:

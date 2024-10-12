@@ -22,7 +22,7 @@ def get_kernel_center(kernel):
   return kernel.item(len(kernel) // 2)
 
 
-def calc_temp_std_dev_get_kernel(target_num,intensity_sigma):
+def get_kernel_with_dynamic_std_dev(target_num, intensity_sigma):
   """This function will make it so if all temporal pixels had identical
   neighborhoods, the contribution of the neighborhood pixels would be 
   equal to 2 * target_num * G_center where G_center is the weight on center
@@ -37,13 +37,7 @@ def calc_temp_std_dev_get_kernel(target_num,intensity_sigma):
   #more spread out pixels are. and if i should only add together the weights
   #when the frame is not its self? maybe that would be best but the over under
   # on pixel counts would be off probably
-  if target_num < 1.0:
-    # But if I'm returning one for the center isn't this going to register as
-    #getting too many pixel?
-    kernel = get_1d_kernel(size,0.0) * 0.0
-   # a[len(a) // 2] = 1.0
-    kernel[len(kernel)//2] = 0.5
-    return kernel
+
   if target_num > 10.0:
     sys.stderr.write("Mapping should not go over 9")
     sys.exit()
