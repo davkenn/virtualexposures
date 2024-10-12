@@ -186,15 +186,15 @@ class AstaFilter(object):
 
     for i in xrange(0, frame_window.get_length()):
       other_frame = frame_window.frame_list[i]
-   #   curr_gauss_weights = get_weights_list(i, gaussian_space_kernels)
+      curr_gauss_weights = get_weights_list(i, gaussian_space_kernels)
 
-  #    frame_distance_weights = np.copy(rounded_targets)
+      frame_distance_weights = np.copy(rounded_targets)
 
 
       p = np.vectorize( lambda x : gaussian_space_kernels[x][i])
 
-    #  make_weights_array(frame_distance_weights,
-     #                    curr_gauss_weights)  # in-place change
+      make_weights_array(frame_distance_weights,
+                         curr_gauss_weights)  # in-place change
 
       frame_distance_weights = p(rounded_targets)
 
