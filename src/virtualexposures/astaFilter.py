@@ -1,16 +1,9 @@
 from __future__ import division
-
 from inspect import currentframe
-
-import cv2
-import numpy as np
 from numpy.random import normal
-
 from gausskern import get_neighborhood_diffs,calc_temp_std_dev_get_kernel
 from gausskern import intensity_gaussian
 from scipy import stats
-
-from __future__ import division
 import cv2
 import sys
 import numpy as np
@@ -18,71 +11,15 @@ from functools import partial
 from tonemap import find_target_luminance,tonemap_spatially_uniform
 
 
-def spatial_filter(temp_filtered_frame, distances_short_of_targets):
-  """This function chooses a final pixel value with either no
-  spatial filtering, or varying degrees of spatial filtering depending
-  on how short the temporal filter came to gathering enough pixels"""
-  print "CALLED"
-  # return temp_filtered_frame
-  # TODO: add a median filtering step before bilateral filter step
-
-  some_filtering = cv2.bilateralFilter(
-    temp_filtered_frame.astype(np.float32),
-    5,
-    15,
-    15
-  )
-
-  #  lots_filtering = cv2.bilateralFilter(
-  #                      temp_filtered_frame,
-  #                  9,
-  #          150,
-  #        150
-  # )
-
-  # need three channels of distances because spatial filter done on all 3
-  dists_short = np.repeat(
-    distances_short_of_targets[:, :, np.newaxis],
-    3,
-    axis=2
-  )
-  # this is used as a cutoff for spots where no further filtering required
-  min_values = np.zeros_like(dists_short)
-  min_values.fill(0.0)
-
-  middles = np.zeros_like(dists_short)
-  middles.fill(0.02)
-  a1 = np.less(dists_short, min_values)
-  filla = np.where(a1, temp_filtered_frame, some_filtering)
-
-  greater_than_zeros = np.greater_equal(dists_short, min_values)
-  less_than_highs = np.less(dists_short, middles)
-  a_little_short_elems = np.logical_and(greater_than_zeros, less_than_highs)
-
-  some_space_filter_vals_added = np.where(a_little_short_elems,
-                                          some_filtering,
-                                          temp_filtered_frame)
-
-  a_lot_short_elems = np.greater_equal(dists_short, middles)
-
-  #  lots_space_filter_vals_added = np.where(
-  #                                   a_lot_short_elems,
-  #                                  lots_filtering,
-  #                                 some_space_filter_vals_added
-  #  )
-
-  # return lots_space_filter_vals_added
-  return filla
 
 
 class AstaFilter(object):
   """Surrounding frame count is the number of frames counting itself.
    Probably need a diff number of surrounding frames for each frame  but
    the best thing to do is probably just overestimate and use less if need be"""
-  def __init__(self,  pixel_targets,intensity_sigma):
+  def __init__(self,intensity_sigma):
 
-    self.pixel_targets = pixel_targets
-    self.gaussian_space_kernels = self.make_gaussian_kernels(self.pixel_targets)
+    self.gaussian_space_kernels = self.make_gaussian_kernels(intensity_sigma)
     self.intensity_sigma = intensity_sigma
     self.gaussian_intensity_kernel = partial(
                                      intensity_gaussian,
@@ -91,7 +28,7 @@ class AstaFilter(object):
     )
 
 
-  def asta_filter(self, frame_window):
+  def asta_filter(self, frame_window,pixel_targets):
     """Takes as argument a frame_window which has the current video frame and its
     surrounding frames.  The targetnums argument is a 2d array containing the
     target number of pixels to combine for each pixel in the frame. The function
@@ -103,15 +40,15 @@ class AstaFilter(object):
 
     output_1 = np.copy(frame_window.get_main_frame())
 
-    (numerators, normalizers), short_of_target = self.temporal_filter(
+    (numerators, normalizers), short_of_target = AstaFilter.temporal_filter(
                                                  frame_window,
-                                                 self.pixel_targets,
+                                                 pixel_targets,
                                                  self.gaussian_space_kernels
     )
 
     output_1[:, :, 0] = numerators / normalizers
   
-    output_2 = spatial_filter(output_1, short_of_target)
+    output_2 = AstaFilter.spatial_filter(output_1, short_of_target)
 
     return output_2
 
@@ -165,6 +102,64 @@ class AstaFilter(object):
     return (numerators, normalizers), distances_short_of_target
 
   @staticmethod
+  def spatial_filter(temp_filtered_frame, distances_short_of_targets):
+    """This function chooses a final pixel value with either no
+    spatial filtering, or varying degrees of spatial filtering depending
+    on how short the temporal filter came to gathering enough pixels"""
+    print "CALLED"
+    # return temp_filtered_frame
+    # TODO: add a median filtering step before bilateral filter step
+
+    some_filtering = cv2.bilateralFilter(
+      temp_filtered_frame.astype(np.float32),
+      5,
+      15,
+      15
+    )
+
+    #  lots_filtering = cv2.bilateralFilter(
+    #                      temp_filtered_frame,
+    #                  9,
+    #          150,
+    #        150
+    # )
+
+    # need three channels of distances because spatial filter done on all 3
+    dists_short = np.repeat(
+      distances_short_of_targets[:, :, np.newaxis],
+      3,
+      axis=2
+    )
+    # this is used as a cutoff for spots where no further filtering required
+    min_values = np.zeros_like(dists_short)
+    min_values.fill(0.0)
+
+    middles = np.zeros_like(dists_short)
+    middles.fill(0.02)
+    a1 = np.less(dists_short, min_values)
+    filla = np.where(a1, temp_filtered_frame, some_filtering)
+
+    greater_than_zeros = np.greater_equal(dists_short, min_values)
+    less_than_highs = np.less(dists_short, middles)
+    a_little_short_elems = np.logical_and(greater_than_zeros, less_than_highs)
+
+    some_space_filter_vals_added = np.where(a_little_short_elems,
+                                            some_filtering,
+                                            temp_filtered_frame)
+
+    a_lot_short_elems = np.greater_equal(dists_short, middles)
+
+    #  lots_space_filter_vals_added = np.where(
+    #                                   a_lot_short_elems,
+    #                                  lots_filtering,
+    #                                 some_space_filter_vals_added
+    #  )
+
+    # return lots_space_filter_vals_added
+    return filla
+
+
+  @staticmethod
   def make_gaussian_kernels(intensity_sigma):
 
     kernel_keys = []
@@ -182,22 +177,26 @@ class AstaFilter(object):
   def average_temporally_adjacent_pixels(
             frame_window,
             gaussian_space_kernels,
-            filter_keys
+            rounded_targets
   ):
 
-    numerators, normalizers = np.zeros_like(filter_keys), np.zeros_like(filter_keys)
+    numerators, normalizers = np.zeros_like(rounded_targets), np.zeros_like(rounded_targets)
 
     frame = frame_window.get_main_frame()
 
     for i in xrange(0, frame_window.get_length()):
       other_frame = frame_window.frame_list[i]
-      curr_gauss_weights = get_weights_list(i, gaussian_space_kernels)
+   #   curr_gauss_weights = get_weights_list(i, gaussian_space_kernels)
 
-      frame_distance_weights = np.copy(filter_keys)
+  #    frame_distance_weights = np.copy(rounded_targets)
 
-      frame_distance_weights = gaussian_space_kernels[frame_distance_weights]
-      make_weights_array(frame_distance_weights,
-                         curr_gauss_weights)  # in-place change
+
+      p = np.vectorize( lambda x : gaussian_space_kernels[x][i])
+
+    #  make_weights_array(frame_distance_weights,
+     #                    curr_gauss_weights)  # in-place change
+
+      frame_distance_weights = p(rounded_targets)
 
       pixel_distance_weights = get_neighborhood_diffs(
                                frame[:, :, 0],

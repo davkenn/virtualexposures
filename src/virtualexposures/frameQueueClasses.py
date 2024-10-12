@@ -3,7 +3,7 @@ import cv2
 import sys
 import numpy as np
 from tonemap import find_target_luminance,tonemap_spatially_uniform
-from astaFilter import asta_filter
+from astaFilter import AstaFilter
 
 class FrameQueue(object):
   """Surrounding frame count is the number of frames counting itself.
@@ -172,11 +172,14 @@ if __name__ == "__main__":
 
   fw = frame_queue.get_next_frame()
 
+  filter_var = AstaFilter(4.0)
+
+
   while fw:
     gain_ratios = find_target_luminance(fw.get_main_frame())
 
     assert np.all(np.array(list(map(lambda x: x < 10.0, gain_ratios))))
-    result = asta_filter(fw, gain_ratios)
+    result = filter_var.asta_filter(fw, gain_ratios)
     result[:,:,0] = tonemap_spatially_uniform(result)
     frame_queue.writeVidFrameConvertYUV2BGR(result)
     print "Done with a frame"
