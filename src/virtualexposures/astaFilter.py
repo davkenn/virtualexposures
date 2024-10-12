@@ -191,6 +191,9 @@ class AstaFilter(object):
       ls = get_weights_list(i,gaussian_space_kernels)
       other_frame = frame_window.frame_list[i]
 
+      curr_gauss_weights = get_weights_list(i, gaussian_space_kernels)
+      frame_distance_weights = np.copy(filter_keys)
+      make_weights_array(frame_distance_weights, curr_gauss_weights)  #
       p = np.vectorize(lambda x : gaussian_space_kernels[x].item(i))
 
 
