@@ -74,9 +74,9 @@ def temporal_filter(frame_window, target_numbers, max_error):
   )
 
   distances_short_of_target = ideal_weight - normalizers
-  print distances_short_of_target.min(),distances_short_of_target.max(),stats.mode(distances_short_of_target,
-                   axis=None),np.average(distances_short_of_target)
-#   print normalizers.min(), normalizers.max(), stats.mode(normalizers,axis= None),np.average(normalizers)
+  #print distances_short_of_target.min(),distances_short_of_target.max(),stats.mode(distances_short_of_target,
+   #                axis=None),np.average(distances_short_of_target)
+  print normalizers.min(), normalizers.max(), stats.mode(normalizers,axis= None),np.average(normalizers)
 
 #also think if you should compare the denom sizes after you just changed the kernel to super big. see if it gathered more weight before
 
