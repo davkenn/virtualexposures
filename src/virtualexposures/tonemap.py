@@ -20,9 +20,13 @@ def tone_map_vectorized(vid_frame, attenuation):
   
 #did I fix this in an okay way?
 def divide_if_nonzero(num, denom):
-  if denom == 0.0:
+  #where the start and end luminances are both 1
+  if denom == 0.0 and num == 0.0:
+    return 1.0
+  elif denom == 0.0:
     return num
-  return num / denom
+  else:
+    return num / denom
 
 
 def divide_if_nonzero_vec(num_array, denom_array):

@@ -185,29 +185,22 @@ class AstaFilter(object):
 
     for i in xrange(0, frame_window.get_length()):
 
-   #   cache = [-1.0] * len(gaussian_space_kernels) * 2
-     # for j in range(2, len(gaussian_space_kernels)):
-      #  cache[j] = gaussian_space_kernels[j / 2][i]
-      ls = get_weights_list(i,gaussian_space_kernels)
       other_frame = frame_window.frame_list[i]
 
       curr_gauss_weights = get_weights_list(i, gaussian_space_kernels)
-      frame_distance_weights = np.copy(filter_keys)
-      make_weights_array(frame_distance_weights, curr_gauss_weights)  #
-      p = np.vectorize(lambda x : gaussian_space_kernels[x].item(i))
 
+      space_distance_weights = make_weights_array(
+                              np.copy(rounded_targets),
+                              curr_gauss_weights
+      )
 
-      frame_distance_weights = np.ones_like(rounded_targets)
-      frame_distance_weights *= p(rounded_targets)
-     # frame_distance_weights *= cache[frame_distance_weights*2]
-
-      pixel_distance_weights = get_neighborhood_diffs(
+      intensity_distances = get_neighborhood_diffs(
                                frame[:, :, 0],
                                other_frame[:, :, 0]
       )
 
-      intensity_weights = intensity_gaussian(pixel_distance_weights, 2.5)
-      total_gaussian_weights = frame_distance_weights * intensity_weights
+      intensity_weights = intensity_gaussian(intensity_distances, 2.5)
+      total_gaussian_weights = space_distance_weights * intensity_weights
 
       numerators += total_gaussian_weights * other_frame[:, :, 0]
       normalizers += total_gaussian_weights
@@ -255,9 +248,10 @@ class AstaFilter(object):
 
     return copy
 
+
 def get_weights_list(index, kernel_dict):
-  """This function will return the gaussian distance weights based on index,
-  which is both the frame number in the queue and the index to the proper
+  """This function returns the gaussian distance weights based on frame index,
+  which is both the frame index in the frame queue and the index to the proper
   gaussian weight"""
   weights_list = []
   #go through dict in order
@@ -265,6 +259,34 @@ def get_weights_list(index, kernel_dict):
     weights_list.append(kernel_dict[key].item(index))
 
   return weights_list
+
+
+def make_weights_array(rounded_targets, weights_list):
+  """Takes a numpy array of equal dimension to the pixel lum array filled with
+  values of about how many pixels need to be combined at each pixel
+  (filter_keys).  Associates these with the correct elements in weights_list
+  which holds the gaussian weights for the different filter_keys.  Will return
+  a numpy array of pixel lum size with values of spatial gaussian weights"""
+#what about my filter key 9.5? why are these diff lengths
+  rounded_targets[rounded_targets > 8.6] = weights_list[16] #9.0 weight
+  rounded_targets[rounded_targets > 8.1] = weights_list[15] #8.5 weight
+  rounded_targets[rounded_targets > 7.6] = weights_list[14] #8.0 weight
+  rounded_targets[rounded_targets > 7.1] = weights_list[13] #7.5 weight
+  rounded_targets[rounded_targets > 6.6] = weights_list[12] #7.0 weight
+  rounded_targets[rounded_targets > 6.1] = weights_list[11] #6.5 weight
+  rounded_targets[rounded_targets > 5.6] = weights_list[10] #6.0 weight
+  rounded_targets[rounded_targets > 5.1] = weights_list[9] #5.5 weight
+  rounded_targets[rounded_targets > 4.6] = weights_list[8] #5.0 weight
+  rounded_targets[rounded_targets > 4.1] = weights_list[7] #4.5 weight
+  rounded_targets[rounded_targets > 3.6] = weights_list[6] #4.0 weight
+  rounded_targets[rounded_targets > 3.1] = weights_list[5] #3.5 weight
+  rounded_targets[rounded_targets > 2.6] = weights_list[4] #3.0 weight
+  rounded_targets[rounded_targets > 2.1] = weights_list[3] #2.5 weight
+  rounded_targets[rounded_targets > 1.6] = weights_list[2] #2.0 weight
+  rounded_targets[rounded_targets > 1.1] = weights_list[1] #1.5 weight
+  rounded_targets[rounded_targets == 1.0] = weights_list[0] #1.0 weight
+
+  return rounded_targets
 
 def get_nearest_dict_keys(target_nums):
   """Keys in the filter dict are at 1, 1.5, 2, etc..."""

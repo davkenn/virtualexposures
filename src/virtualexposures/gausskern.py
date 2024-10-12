@@ -82,7 +82,6 @@ def get_neighborhood_diffs(neighborhood_1, neighborhood_2):
   as they possibly can be (returns 0)"""
 
   neighborhood_diffs = np.abs(np.subtract(neighborhood_1,neighborhood_2))
-
   return neighborhood_diffs
   #from paper: "The neighborhood size, often between 3 and 5, can be 
   #varied depending on noise as can [std_dev] (usually between 2 and 6)
@@ -99,13 +98,4 @@ def intensity_gaussian(x, sigma= 1.0):
     return (1 / (sigma * np.sqrt(2 * np.pi))) * np.exp(
       -0.5 * ((x ** 2) / (sigma ** 2)))
 
-if __name__ == "__main__":
 
-  for i in xrange(1, 20):
-    pass
-  
-  j = np.array([[1.0,2.0,3.0],[4.0,5.0,6.0],[7.0,8.0,9.0]])
-  l = np.array([[1.0,2.0,3.0],[4.0,5.0,6.0],[7.0,8.0,9.0]])
-  m = np.array([[2.0,5.5,6.6],[7.7,15.0,0.0],[5.5,1.0,7.0]])
-
- # print calc_temp_std_dev_get_kernel(2.0, 19)
