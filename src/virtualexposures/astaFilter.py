@@ -104,8 +104,8 @@ class AstaFilter(object):
     some_filtering = cv2.bilateralFilter(
       temp_filtered_frame.astype(np.float32),
       5,
-      35,
-      35
+      20,
+      20
     )
 
     #  lots_filtering = cv2.bilateralFilter(
@@ -182,8 +182,9 @@ class AstaFilter(object):
 
       curr_gauss_weights = get_weights_list(i, gaussian_space_kernels)
 
-      space_distance_weights = make_weights_array(
-                              np.copy(rounded_targets),
+      space_distance_weights= np.copy(rounded_targets)
+      make_weights_array(
+                              space_distance_weights,
                               curr_gauss_weights
       )
 
