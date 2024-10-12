@@ -105,7 +105,6 @@ class AstaFilter(object):
     """This function chooses a final pixel value with either no
     spatial filtering, or varying degrees of spatial filtering depending
     on how short the temporal filter came to gathering enough pixels"""
-    print "CALLED"
     # return temp_filtered_frame
     # TODO: add a median filtering step before bilateral filter step
 
