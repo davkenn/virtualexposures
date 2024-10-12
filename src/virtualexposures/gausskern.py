@@ -98,7 +98,7 @@ def get_neighborhood_diffs(neighborhood_1, neighborhood_2):
   neigh_diffs = np.array(neighborhood_diffs,dtype='float64')
 
 
-def intensity_gaussian(x, sigma):
+def intensity_gaussian(x, sigma= 1.0):
     """
     Computes the Gaussian function for a given x and standard deviation (sigma).
     """
