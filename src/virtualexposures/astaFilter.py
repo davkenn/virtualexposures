@@ -132,30 +132,27 @@ class AstaFilter(object):
                                         gaussian_space_kernels,
                                         frame_window.is_frame_at_edges()
     )
-    # make this a class and move this and other things out of the loop
-
-    filter_keys = get_nearest_filter_keys(pixel_targets)
 
     # calculate how short we are in the number of pixels we could average to
     # determine how much to use spatial filter
-    ideal_weight = np.ones_like(filter_keys)
-
+    rounded_targets = get_nearest_dict_keys(pixel_targets)
 
     get_space_kernel = np.vectorize(
            lambda x:
              gaussian_space_kernels[x].item(frame_window.curr_frame_index)
     )
-    space_kernel = get_space_kernel(filter_keys)
+    space_kernel = get_space_kernel(rounded_targets)
+
+    ideal_weight = np.ones_like(rounded_targets)
 
     ideal_weight *= space_kernel
-    #to do should I use the partial function in the class or call like this?
     ideal_weight *= intensity_gaussian(0, 4.0)
-    ideal_weight *= filter_keys
+    ideal_weight *= rounded_targets
 
     numerators, normalizers = average_temporally_adjacent_pixels(
       frame_window,
       gaussian_space_kernels,
-      filter_keys
+      rounded_targets
     )
 
     distances_short_of_target = ideal_weight - normalizers
@@ -193,6 +190,8 @@ class AstaFilter(object):
       return gaussian_space_kernels
 
     for key in gaussian_space_kernels:
+
+   #   zero_frames = np.array([[0.0] * abs(distance_off_center)])
 
       zero_frames = np.array([[0.0]] * abs(distance_off_center))
 
@@ -295,7 +294,7 @@ def make_weights_array(filter_keys, weights_list):
   return filter_keys
 
 
-def get_nearest_filter_keys(target_nums):
+def get_nearest_dict_keys(target_nums):
   """Keys in the filter dict are at 1, 1.5, 2, etc..."""
   return np.round(target_nums * 2) / 2
   
