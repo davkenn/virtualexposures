@@ -128,10 +128,10 @@ class AstaFilter(object):
     function returns both the temporally averaged pixel values and how short we
    were from combining enough pixels at each location with this temporal step."""
 
-#    gaussian_space_kernels = AstaFilter.rearrange_gaussian_kernels(
- #                                       gaussian_space_kernels,
-  #                                      frame_window.is_frame_at_edges()
-   # )
+    gaussian_space_kernels = AstaFilter.rearrange_gaussian_kernels(
+                                        gaussian_space_kernels,
+                                        frame_window.is_frame_at_edges()
+    )
     # make this a class and move this and other things out of the loop
 
     filter_keys = get_nearest_filter_keys(pixel_targets)
@@ -144,7 +144,7 @@ class AstaFilter(object):
     get_space_kernel = np.vectorize(
            lambda x:
              gaussian_space_kernels[x].item(frame_window.curr_frame_index)
-   )
+    )
     space_kernel = get_space_kernel(filter_keys)
 
     ideal_weight *= space_kernel
@@ -159,11 +159,8 @@ class AstaFilter(object):
     )
 
     distances_short_of_target = ideal_weight - normalizers
-    # print distances_short_of_target.min(),distances_short_of_target.max(),stats.mode(distances_short_of_target,
-    #                axis=None),np.average(distances_short_of_target)
-    print normalizers.min(), normalizers.max(), stats.mode(normalizers,
-                                                           axis=None), np.average(
-      normalizers)
+    # print distances_short_of_target.min(),distances_short_of_target.max(),stats.mode(distances_short_of_target,axis=None),np.average(distances_short_of_target)
+    print normalizers.min(), normalizers.max(), stats.mode(normalizers,axis=None), np.average(normalizers)
 
     # also think if you should compare the denom sizes after you just changed the kernel to super big. see if it gathered more weight before
 
@@ -192,25 +189,37 @@ class AstaFilter(object):
     will rearrange the gaussian kernel in these situations so that the weight
     of each frame still decreases with temporal distance from the current frame."""
 
-    resorted_kernels = dict()
-
-
     if distance_off_center == 0:
-      return
+      return gaussian_space_kernels
 
-    for kernel in gaussian_space_kernels:
+    for key in gaussian_space_kernels:
 
       zero_frames = np.array([[0.0]] * abs(distance_off_center))
 
       if distance_off_center < 0:  # frame is near beginning of video
-        kernel = np.concatenate([kernel[-distance_off_center:], zero_frames])
+
+        gaussian_space_kernels[key] = (
+          np.concatenate(
+            [
+              gaussian_space_kernels[key][-distance_off_center:],
+              zero_frames
+            ]
+          )
+        )
 
       elif distance_off_center > 0:  # frame i/s near end of video
-        kernel = np.concatenate([zero_frames, kernel[:-distance_off_center]])
 
-      resorted_kernels.append(np.array(kernel))
+        gaussian_space_kernels[key] = (
+          np.concatenate(
+            [
+              zero_frames,
+              gaussian_space_kernels[key][:-distance_off_center]
 
-    return resorted_kernels
+            ]
+          )
+        )
+
+    return gaussian_space_kernels
 
 def average_temporally_adjacent_pixels(
     frame_window,
