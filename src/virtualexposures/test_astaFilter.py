@@ -1,13 +1,13 @@
 import pytest
 from astaFilter import AstaFilter
-from gausskern import INTENSITY_SIGMA
 
 
 class TestAstaFilter:
+
   @pytest.fixture
   def spatial_kernels(self):
     """This fixture will only be available within the scope of TestGroup"""
-    return AstaFilter.make_gaussian_kernels(INTENSITY_SIGMA)
+    return AstaFilter.make_gaussian_kernels(21)
 
   def test_rearrange_moves_right(self,spatial_kernels):
     assert (AstaFilter.rearrange_gaussian_kernels(spatial_kernels,-14)[1.0][0]

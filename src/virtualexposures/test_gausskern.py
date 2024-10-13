@@ -18,10 +18,10 @@ class TestGausskern:
 
 
     def test_calc_temp_std_dev_get_kernel(self):
-        a = get_kernel_with_dynamic_std_dev(2.0, 4.0)
-        b = get_kernel_with_dynamic_std_dev(3.0, 4.0)
-        c = get_kernel_with_dynamic_std_dev(6.0, 4.0)
-        d = get_kernel_with_dynamic_std_dev(7.0, 4.0)
+        a = get_kernel_with_dynamic_std_dev(2.0, 21)
+        b = get_kernel_with_dynamic_std_dev(3.0, 21)
+        c = get_kernel_with_dynamic_std_dev(6.0, 21)
+        d = get_kernel_with_dynamic_std_dev(7.0, 21)
 
         assert (get_kernel_center(a) > get_kernel_center(b) >
                 get_kernel_center(c) > get_kernel_center(d))
