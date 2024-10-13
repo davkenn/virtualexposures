@@ -13,19 +13,17 @@ class FrameQueue(object):
 
     self.video_filename = video_filename
     self.current_frame_index = -1 #position of current frame in window
-    #overall frame number
-    self.current_frame = 1
+    self.current_frame = 1     #overall frame number
     self.frame_window = []
-
-    #window is always odd
     self.video_capt = cv2.VideoCapture(video_filename)
+
     if not self.video_capt.isOpened():
       raise ValueError("Invalid input file: " + video_filename)
 
     dims = (int(self.video_capt.get(cv2.CAP_PROP_FRAME_WIDTH)),
                    int(self.video_capt.get(cv2.CAP_PROP_FRAME_HEIGHT)))
 
-    self.video_writer = cv2.VideoWriter('njj.avi',
+    self.video_writer = cv2.VideoWriter('njj4.avi',
                                         cv2.VideoWriter.fourcc('M','J','P','G'),
                                         self.video_capt.get(cv2.CAP_PROP_FPS),
                                         dims
@@ -76,6 +74,7 @@ class FrameQueue(object):
     else:
       return success,img
 
+
   def get_next_frame(self):
     """This returns a window of frames around the current one.  THe only logic
      comes in the beginning and the end when we have to communicate that the
@@ -97,11 +96,10 @@ class FrameQueue(object):
          self.frame_window.pop(0)
 
     else:
+
       self.current_frame_index += 1
 
-    #THIS LINE MUST BE RIGHT BEFORE RETURN STATEMENT SO I DONT MESS UP LOGIC
     self.current_frame +=1
-    #is there a bug in incrementing frame index in framewindow
     return FrameWindow(self.frame_window,self.current_frame_index)
 
 
@@ -133,15 +131,16 @@ class FrameWindow(object):
 
     
 if __name__ == "__main__":
+
   try:
-    frame_queue = FrameQueue('large.mp4',29)
+    frame_queue = FrameQueue("3462279833-preview.mp4",21)
   except ValueError as err:
     sys.stderr.write(err.message)
     sys.exit()
 
   fw = frame_queue.get_next_frame()
 
-  filter_var = AstaFilter()
+  filter_var = AstaFilter(frame_queue.frames_in_window)
 
   while fw:
     gain_ratios = find_target_luminance(fw.get_main_frame())
@@ -149,7 +148,6 @@ if __name__ == "__main__":
     result = filter_var.asta_filter(fw, gain_ratios)
     result[:,:,0] = tonemap_spatially_uniform(result)
     frame_queue.writeVidFrameConvertYUV2BGR(result)
-    print "Done with a frame"
     fw = frame_queue.get_next_frame()
 
 

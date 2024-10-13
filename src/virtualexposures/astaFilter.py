@@ -1,7 +1,7 @@
 from __future__ import division
 from inspect import currentframe
 from numpy.random import normal
-from gausskern import get_neighborhood_diffs, get_kernel_with_dynamic_std_dev
+from gausskern import get_neigh_diffs, get_kernel_with_dynamic_std_dev
 from gausskern import INTENSITY_SIGMA
 from gausskern import intensity_gaussian
 from scipy import stats
@@ -12,9 +12,9 @@ class AstaFilter(object):
   """Surrounding frame count is the number of frames counting itself.
    Probably need a diff number of surrounding frames for each frame  but
    the best thing to do is probably just overestimate and use less if need be"""
-  def __init__(self):
+  def __init__(self,size):
 
-    self.gaussian_space_kernels = self.make_gaussian_kernels(INTENSITY_SIGMA)
+    self.gaussian_space_kernels = self.make_gaussian_kernels(size)
 
 
   def asta_filter(self, frame_window,pixel_targets):
@@ -151,15 +151,15 @@ class AstaFilter(object):
 
 
   @staticmethod
-  def make_gaussian_kernels(intensity_sigma):
+  def make_gaussian_kernels(size):
 
     kernel_keys = []
     all_kernels = []
 
-    for i in xrange(2,20):  # builds 1-d gaussian kernels of length equal to frame window size
+    for i in xrange(2,21):  # builds 1-d gaussian kernels of length equal to frame window size
       kernel_keys.append(i / 2)  # with std. devs between .5 and 9.5
       all_kernels.append(
-        get_kernel_with_dynamic_std_dev(i / 2, intensity_sigma)
+        get_kernel_with_dynamic_std_dev(i / 2, size)
       )
 
     return dict(zip(kernel_keys, all_kernels))
@@ -182,21 +182,18 @@ class AstaFilter(object):
 
       curr_gauss_weights = get_weights_list(i, gaussian_space_kernels)
 
-      space_distance_weights= np.copy(rounded_targets)
-      make_weights_array(
-                              space_distance_weights,
-                              curr_gauss_weights
-      )
+      space_distance_weights = np.copy(rounded_targets)
 
-      intensity_distances = get_neighborhood_diffs(
-                               frame[:, :, 0],
-                               other_frame[:, :, 0]
-      )
+      make_weights_array(space_distance_weights,curr_gauss_weights)
+
+      intensity_distances = get_neigh_diffs(frame[:, :, 0],other_frame[:, :, 0])
 
       intensity_weights = intensity_gaussian(intensity_distances)
+
       total_gaussian_weights = space_distance_weights * intensity_weights
 
       numerators += total_gaussian_weights * other_frame[:, :, 0]
+
       normalizers += total_gaussian_weights
 
     return numerators, normalizers
@@ -262,6 +259,7 @@ def make_weights_array(rounded_targets, weights_list):
   which holds the gaussian weights for the different filter_keys.  Will return
   a numpy array of pixel lum size with values of spatial gaussian weights"""
 #what about my filter key 9.5? why are these diff lengths
+  rounded_targets[rounded_targets > 9.1] = weights_list[17] #9.5 weight
   rounded_targets[rounded_targets > 8.6] = weights_list[16] #9.0 weight
   rounded_targets[rounded_targets > 8.1] = weights_list[15] #8.5 weight
   rounded_targets[rounded_targets > 7.6] = weights_list[14] #8.0 weight

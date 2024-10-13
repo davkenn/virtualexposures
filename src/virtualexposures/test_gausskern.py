@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from gausskern import (get_neighborhood_diffs, get_kernel_with_dynamic_std_dev,
+from gausskern import (get_neigh_diffs, get_kernel_with_dynamic_std_dev,
                        get_kernel_center, intensity_gaussian,
                        _intensity_gaussian)
 
@@ -13,8 +13,8 @@ class TestGausskern:
     def test_get_neighborhood_diffs(self):
         j = np.array([[11, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.int32)
         l = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.int32)
-        assert get_neighborhood_diffs(j, l)[0,0]==10.0
-        assert get_neighborhood_diffs(j, l)[0, 1] == 0.0
+        assert get_neigh_diffs(j, l)[0,0] == 10.0
+        assert get_neigh_diffs(j, l)[0, 1] == 0.0
 
 
     def test_calc_temp_std_dev_get_kernel(self):
