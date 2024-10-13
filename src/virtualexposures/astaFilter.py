@@ -60,8 +60,7 @@ class AstaFilter(object):
                                         gaussian_space_kernels,
                                         frame_window.is_frame_at_edges()
     )
-    # calculate how short we are in the number of pixels we could average to
-    # determine how much to use spatial filter
+
     rounded_targets = get_nearest_dict_keys(pixel_targets)
 
     get_space_kernel = np.vectorize(
@@ -71,10 +70,8 @@ class AstaFilter(object):
     space_kernel = get_space_kernel(rounded_targets)
 
     ideal_weight = np.ones_like(rounded_targets)
+    ideal_weight *= space_kernel * intensity_gaussian(0.0) * rounded_targets
 
-    ideal_weight *= space_kernel
-    ideal_weight *= intensity_gaussian(0.0)
-    ideal_weight *= rounded_targets
 
     numerators, normalizers = AstaFilter.average_temporally_adjacent_pixels(
                                          frame_window,

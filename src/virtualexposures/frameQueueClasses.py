@@ -143,7 +143,6 @@ if __name__ == "__main__":
 
   while fw:
     gain_ratios = find_target_luminance(fw.get_main_frame())
-   # assert np.all(np.array(list(map(lambda x: x < 10.0, gain_ratios))))
     result = filter_var.asta_filter(fw, gain_ratios)
     result[:,:,0] = tonemap_spatially_uniform(result)
     frame_queue.write_vid_frame(fw.get_main_frame())
