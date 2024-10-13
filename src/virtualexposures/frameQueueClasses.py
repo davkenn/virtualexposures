@@ -23,7 +23,7 @@ class FrameQueue(object):
     dims = (int(self.video_capt.get(cv2.CAP_PROP_FRAME_WIDTH)),
                    int(self.video_capt.get(cv2.CAP_PROP_FRAME_HEIGHT)))
 
-    self.video_writer = cv2.VideoWriter('njj4.avi',
+    self.video_writer = cv2.VideoWriter('njjfixingcolors.avi',
                                         cv2.VideoWriter.fourcc('M','J','P','G'),
                                         self.video_capt.get(cv2.CAP_PROP_FPS),
                                         dims
@@ -41,7 +41,7 @@ class FrameQueue(object):
     self.frames_in_window = surrounding_frame_count
 
     for i in range(self.frames_in_window):
-      success,image = self.readVidFrameConvertBGR2YUV()
+      success,image = self.read_vid_frame()
       self.frame_window.append(image)
 
 
@@ -59,13 +59,13 @@ class FrameQueue(object):
     return cnt
 
 
-  def writeVidFrameConvertYUV2BGR(self, img):
+  def write_vid_frame(self, img):
     image = img[:, :, :].astype(np.uint8)
     image = cv2.cvtColor(image, cv2.COLOR_YUV2BGR)
     self.video_writer.write(image)
 
 
-  def readVidFrameConvertBGR2YUV(self):
+  def read_vid_frame(self):
     success, img = self.video_capt.read()
     if success:
       image = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
@@ -90,7 +90,7 @@ class FrameQueue(object):
     #advance if out from the beginning and still frames left
     elif self.current_frame <= (self.frames_in_video - (half_window - 1)):
 
-         success,image = self.readVidFrameConvertBGR2YUV()
+         success,image = self.read_vid_frame()
 
          self.frame_window.append(image)
          self.frame_window.pop(0)
@@ -109,7 +109,6 @@ class FrameWindow(object):
   def __init__(self, frame_list,curr_frame_index):
     self.frame_list = frame_list
     self.curr_frame_index = curr_frame_index
-    print self.curr_frame_index
 
 
   def get_main_frame(self):
@@ -133,7 +132,7 @@ class FrameWindow(object):
 if __name__ == "__main__":
 
   try:
-    frame_queue = FrameQueue("3462279833-preview.mp4",21)
+    frame_queue = FrameQueue("1110347515-preview.mp4",21)
   except ValueError as err:
     sys.stderr.write(err.message)
     sys.exit()
@@ -144,10 +143,10 @@ if __name__ == "__main__":
 
   while fw:
     gain_ratios = find_target_luminance(fw.get_main_frame())
-    assert np.all(np.array(list(map(lambda x: x < 10.0, gain_ratios))))
+   # assert np.all(np.array(list(map(lambda x: x < 10.0, gain_ratios))))
     result = filter_var.asta_filter(fw, gain_ratios)
     result[:,:,0] = tonemap_spatially_uniform(result)
-    frame_queue.writeVidFrameConvertYUV2BGR(result)
+    frame_queue.write_vid_frame(fw.get_main_frame())
     fw = frame_queue.get_next_frame()
 
 

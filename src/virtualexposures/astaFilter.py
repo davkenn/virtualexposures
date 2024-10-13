@@ -98,8 +98,8 @@ class AstaFilter(object):
     """This function chooses a final pixel value with either no
     spatial filtering, or varying degrees of spatial filtering depending
     on how short the temporal filter came to gathering enough pixels"""
-    # return temp_filtered_frame
-    # TODO: add a median filtering step before bilateral filter step
+#    return temp_filtered_frame
+    # TODO: median filtering
 
     some_filtering = cv2.bilateralFilter(
       temp_filtered_frame.astype(np.float32),
@@ -211,7 +211,7 @@ class AstaFilter(object):
       return copy
 
     for key in gaussian_space_kernels:
-    #  zero_frames = np.array([[0.0] * abs(distance_off_center)])
+
       zero_frames = np.array([[0.0]] * abs(distance_off_center))
 
       if distance_off_center < 0:  # frame is near beginning of video
