@@ -1,4 +1,4 @@
-from tonemap import _tone_map
+from src.tonemap import _tone_map
 
 
 class TestTonemap:

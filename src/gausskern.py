@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 import sys
 
-INTENSITY_SIGMA = 2.5
+INTENSITY_SIGMA = 1.5
 
 def get_1d_kernel(size, std_dev):
   kernel_t = cv2.getGaussianKernel(size,std_dev)
@@ -93,3 +93,10 @@ def _intensity_gaussian(pixel_value_difference, sigma= INTENSITY_SIGMA):
             np.exp(-0.5 * ((pixel_value_difference ** 2) / (sigma ** 2))))
 
 
+def _centralize_weights(kernel):
+  kernel[0] = 0.0
+  kernel[1] = 0.0
+  kernel[len(kernel)-1] = 0.0
+  kernel[len(kernel)-1] = 0.0
+  kernel = kernel / kernel.sum()
+  return kernel

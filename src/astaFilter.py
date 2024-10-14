@@ -63,15 +63,11 @@ class AstaFilter(object):
 
     rounded_targets = get_nearest_dict_keys(pixel_targets)
 
-    get_space_kernel = np.vectorize(
-           lambda x:
-             gaussian_space_kernels[x].item(frame_window.curr_frame_index)
+    space_kernel = AstaFilter.get_space_kernel(
+                              rounded_targets,
+                              gaussian_space_kernels,
+                              frame_window.curr_frame_index
     )
-    space_kernel = get_space_kernel(rounded_targets)
-
-    ideal_weight = np.ones_like(rounded_targets)
-    ideal_weight *= space_kernel * intensity_gaussian(0.0) * rounded_targets
-
 
     numerators, normalizers = AstaFilter.average_temporally_adjacent_pixels(
                                          frame_window,
@@ -79,15 +75,32 @@ class AstaFilter(object):
                                          rounded_targets
     )
 
+
+    ideal_weight = AstaFilter.get_pixel_targets(rounded_targets, space_kernel)
+
+
     distances_short_of_target = ideal_weight - normalizers
-    print rounded_targets.max(),rounded_targets.min()
+
+
 
     print distances_short_of_target.min(),distances_short_of_target.max(),stats.mode(distances_short_of_target,axis=None),np.average(distances_short_of_target)
     print normalizers.min(), normalizers.max(), stats.mode(normalizers,axis=None), np.average(normalizers)
 
-    # also think if you should compare the denom sizes after you just changed the kernel to super big. see if it gathered more weight before
-
     return (numerators, normalizers), distances_short_of_target
+
+  @staticmethod
+  def get_pixel_targets(rounded_targets, space_kernel):
+    return space_kernel * intensity_gaussian(0.0) * rounded_targets
+
+
+  @staticmethod
+  def get_space_kernel(rounded_targets,gaussian_space_kernels,curr_index):
+      curr_gauss_weights = get_weights_list(curr_index, gaussian_space_kernels)
+      space_distance_weights = np.copy(rounded_targets)
+      make_weights_array(space_distance_weights,curr_gauss_weights)
+      return space_distance_weights
+
+
 
 
   @staticmethod
@@ -177,11 +190,11 @@ class AstaFilter(object):
 
       other_frame = frame_window.frame_list[i]
 
-      curr_gauss_weights = get_weights_list(i, gaussian_space_kernels)
+    #  curr_gauss_weights = get_weights_list(i, gaussian_space_kernels)
 
-      space_distance_weights = np.copy(rounded_targets)
+      space_distance_weights = AstaFilter.get_space_kernel(rounded_targets,gaussian_space_kernels,i)
 
-      make_weights_array(space_distance_weights,curr_gauss_weights)
+     # make_weights_array(space_distance_weights,curr_gauss_weights)
 
       intensity_distances = get_neigh_diffs(frame[:, :, 0],other_frame[:, :, 0])
 

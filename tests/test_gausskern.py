@@ -1,16 +1,16 @@
 import numpy as np
 import pytest
 
-from gausskern import (get_neigh_diffs, get_kernel_with_dynamic_std_dev,
-                       get_kernel_center, intensity_gaussian,
-                       _intensity_gaussian)
-
+from src.gausskern import *
+from src.gausskern import _intensity_gaussian
 
 
 
 class TestGausskern:
 
+
     def test_get_neighborhood_diffs(self):
+
         j = np.array([[11, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.int32)
         l = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.int32)
         assert get_neigh_diffs(j, l)[0,0] == 10.0
@@ -25,6 +25,13 @@ class TestGausskern:
 
         assert (get_kernel_center(a) > get_kernel_center(b) >
                 get_kernel_center(c) > get_kernel_center(d))
+
+    def test_calc_temp_std_dev_get_kernel_returns_kernels_equal_one(self):
+        a = get_kernel_with_dynamic_std_dev(1.0, 21).min()
+        b = get_kernel_with_dynamic_std_dev(3.0, 21).min()
+        c = get_kernel_with_dynamic_std_dev(6.0, 21).min()
+        d = get_kernel_with_dynamic_std_dev(9.0, 21).min()
+        print a, b, c, d
 
 
     def test_intensity_gaussian_perfect_match(self):
@@ -50,6 +57,8 @@ class TestGausskern:
         d = intensity_gaussian(7.0)
 
         assert a > b > c > d
+
+
 
 
 
