@@ -145,7 +145,7 @@ if __name__ == "__main__":
     gain_ratios = find_target_luminance(fw.get_main_frame())
     result = filter_var.asta_filter(fw, gain_ratios)
     result[:,:,0] = tonemap_spatially_uniform(result)
-    frame_queue.write_vid_frame(fw.get_main_frame())
+    frame_queue.write_vid_frame(result)
     fw = frame_queue.get_next_frame()
 
 
