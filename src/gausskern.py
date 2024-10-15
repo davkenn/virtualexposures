@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 import sys
 
-INTENSITY_SIGMA = 4.9
+INTENSITY_SIGMA = 10.0
 
 def get_1d_kernel(size, std_dev):
   kernel_t = cv2.getGaussianKernel(size,std_dev)
