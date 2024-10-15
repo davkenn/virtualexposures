@@ -6,12 +6,21 @@ import cv2
 import numpy as np
 import sys
 
-INTENSITY_SIGMA = 3.0
+INTENSITY_SIGMA = 4.0
 
 def get_1d_kernel(size, std_dev):
-  kernel_t = cv2.getGaussianKernel(size,std_dev)
+  kernel_t = cv2.getGaussianKernel(size*2+1,std_dev)
 
-  return kernel_t
+  for i in range(len(kernel_t)):
+    a = abs((len(kernel_t)//2)- i)
+    kernel_t[i] = _intensity_gaussian(a,std_dev)
+  kernel = np.array([[0.0]] *41)
+  center_indices = [slice(int((l - s) / 2), int((l + s) / 2))
+                    for l, s in zip(kernel.shape, kernel_t.shape)]
+
+  result = np.copy(kernel)
+  result[tuple(center_indices)] = kernel_t
+  return result
 
 
 def get_2d_kernel(size, std_dev):
@@ -43,20 +52,28 @@ def get_kernel_with_dynamic_std_dev(target_num, size):
     sys.exit()
 
   target_before_distance_sigma = intensity_gaussian(0.0) * 2.0 * target_num
-
-  std_dev = 0.5
+  kernel_size = 5
+  std_dev = 0.05
   summation = 0.0
-  space_kernel = get_1d_kernel(size, std_dev)
+  space_kernel = get_1d_kernel(find_radius(std_dev), std_dev)
   total = get_kernel_center(space_kernel) * target_before_distance_sigma
 
   while summation < total:
+    std_dev += 0.005
+    space_kernel = get_1d_kernel(find_radius(std_dev),std_dev)
     total = target_before_distance_sigma * get_kernel_center(space_kernel)
-    space_kernel = get_1d_kernel(size,std_dev)
-    std_dev += 0.1
+
     all_pixels = intensity_gaussian(np.zeros_like(space_kernel)) * space_kernel
     summation = all_pixels.sum()
 
   return space_kernel
+
+
+def find_radius(sigma):
+  return int(np.floor(2*sigma))
+
+  #return math.ceil(sigma * np.sqrt(2*np.log(255)) -1)
+
 
 
 def get_neighborhood_compare_kernel(size, std_dev):
@@ -88,9 +105,9 @@ def intensity_gaussian(pixel_value_difference):
   return _intensity_gaussian(pixel_value_difference)
 
 def _intensity_gaussian(pixel_value_difference, sigma= INTENSITY_SIGMA):
-
-    return ((1 / (sigma * np.sqrt(2 * np.pi))) *
-            np.exp(-0.5 * ((pixel_value_difference ** 2) / (sigma ** 2))))
+  return np.exp((-(pixel_value_difference ** 2) / (2 * (sigma ** 2))))     / (sigma * np.sqrt(2 * np.pi))
+ #   return ((1 / (sigma * np.sqrt(2 * np.pi))) *
+   #         np.exp(-0.5 * ((pixel_value_difference ** 2) / (sigma ** 2))))
 
 
 def _centralize_weights(kernel):

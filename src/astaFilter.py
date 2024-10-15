@@ -39,7 +39,7 @@ class AstaFilter(object):
   
     output_2 = AstaFilter.spatial_filter(output_1, short_of_target)
 
-    return output_1
+    return output_2
 
 
   @staticmethod
@@ -118,7 +118,7 @@ class AstaFilter(object):
       20
     )
 
-    return some_filtering
+#    return some_filtering
 
     #  lots_filtering = cv2.bilateralFilter(
     #                      temp_filtered_frame,
