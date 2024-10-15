@@ -35,7 +35,12 @@ class AstaFilter(object):
                                                  self.gaussian_space_kernels
     )
 
-    output_1[:, :, 2] = numerators / normalizers
+    output_1[:, :, 2] = numerators[0] / normalizers[0]
+  #  output_1[:, :, 1] = numerators[1] / normalizers[1]
+   # output_1[:, :, 0] = numerators[0] / normalizers[0]
+
+#    output_1[:,:,0]= (frame_window.get_main_frame()[:,:,0]/frame_window.get_main_frame()[:,:,2]) * output_1[:,:,2]
+ #   output_1[:, :, 1] = (frame_window.get_main_frame()[:, :, 1] / frame_window.get_main_frame()[:, :, 2]) * output_1[:, :, 2]
   
     output_2 = AstaFilter.spatial_filter(output_1, short_of_target)
 
@@ -78,13 +83,12 @@ class AstaFilter(object):
 
     ideal_weight = AstaFilter.get_pixel_targets(rounded_targets, space_kernel)
 
-
-    distances_short_of_target = ideal_weight - normalizers
+    distances_short_of_target = ideal_weight - normalizers[0]
 
 
 
     print distances_short_of_target.min(),distances_short_of_target.max(),stats.mode(distances_short_of_target,axis=None),np.average(distances_short_of_target)
-    print normalizers.min(), normalizers.max(), stats.mode(normalizers,axis=None), np.average(normalizers)
+    print normalizers[0].min(), normalizers[0].max(), stats.mode(normalizers[0],axis=None), np.average(normalizers[0])
 
     return (numerators, normalizers), distances_short_of_target
 
@@ -181,32 +185,45 @@ class AstaFilter(object):
             rounded_targets
   ):
 
-    numerators = np.zeros_like(rounded_targets)
-    normalizers= np.zeros_like(rounded_targets)
+    nums,norms = list(),list()
+
 
     frame = frame_window.get_main_frame()
+    space_distance_weights = np.zeros_like(rounded_targets)
+    intensity_distances = np.zeros_like(rounded_targets)
+    intensity_weights = np.zeros_like(rounded_targets)
 
-    for i in xrange(0, frame_window.get_length()):
+    for j in xrange(2,1,-1):
 
-      other_frame = frame_window.frame_list[i]
+      numerators = np.zeros_like(rounded_targets)
+      normalizers = np.zeros_like(rounded_targets)
+
+      for i in xrange(0, frame_window.get_length()):
+
+        other_frame = frame_window.frame_list[i]
 
     #  curr_gauss_weights = get_weights_list(i, gaussian_space_kernels)
+        space_distance_weights = AstaFilter.get_space_kernel(rounded_targets,
+                                                             gaussian_space_kernels,
+                                                             i)
 
-      space_distance_weights = AstaFilter.get_space_kernel(rounded_targets,gaussian_space_kernels,i)
+
 
      # make_weights_array(space_distance_weights,curr_gauss_weights)
 
-      intensity_distances = get_neigh_diffs(frame[:, :, 2],other_frame[:, :, 2])
+        intensity_distances = get_neigh_diffs(frame[:, :, j],other_frame[:, :, j])
 
-      intensity_weights = intensity_gaussian(intensity_distances)
+        intensity_weights = intensity_gaussian(intensity_distances)
 
-      total_gaussian_weights = space_distance_weights * intensity_weights
+        total_gaussian_weights = space_distance_weights * intensity_weights
 
-      numerators += total_gaussian_weights * other_frame[:, :, 2]
+        numerators += total_gaussian_weights * other_frame[:, :, j]
 
-      normalizers += total_gaussian_weights
+        normalizers += total_gaussian_weights
+      nums.insert(0,numerators)
+      norms.insert(0,normalizers)
 
-    return numerators, normalizers
+    return nums, norms
 
 
   @staticmethod
