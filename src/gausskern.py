@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 import sys
 
-INTENSITY_SIGMA = 4.0
+INTENSITY_SIGMA = 2.3
 
 def get_1d_kernel(size, std_dev):
   kernel_t = cv2.getGaussianKernel(size*2+1,std_dev)
@@ -20,7 +20,7 @@ def get_1d_kernel(size, std_dev):
 
   result = np.copy(kernel)
   result[tuple(center_indices)] = kernel_t
-  return result
+  return result / result.sum()
 
 
 def get_2d_kernel(size, std_dev):
@@ -51,9 +51,12 @@ def get_kernel_with_dynamic_std_dev(target_num, size):
     sys.stderr.write("Kernel size must be at least 21")
     sys.exit()
 
+#  if target_num == 1.0:
+ #   return get_1d_kernel(0, .3989193)
+  #target_num = target_num - 1.0
   target_before_distance_sigma = intensity_gaussian(0.0) * 2.0 * target_num
   kernel_size = 5
-  std_dev = 0.05
+  std_dev = 0.5
   summation = 0.0
   space_kernel = get_1d_kernel(find_radius(std_dev), std_dev)
   total = get_kernel_center(space_kernel) * target_before_distance_sigma
@@ -70,7 +73,7 @@ def get_kernel_with_dynamic_std_dev(target_num, size):
 
 
 def find_radius(sigma):
-  return int(np.floor(2*sigma))
+  return int(np.ceil(2*sigma))
 
   #return math.ceil(sigma * np.sqrt(2*np.log(255)) -1)
 

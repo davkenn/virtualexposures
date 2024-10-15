@@ -6,20 +6,20 @@ from math import log10
 
 def find_target_luminance(vid_frame):
   throwaway_copy = np.copy(vid_frame[:,:,0])
-  throwaway_blurred = cv2.GaussianBlur(throwaway_copy,(5,5),0)
-  result = _tone_map_vectorized(throwaway_blurred, 34)
+ # throwaway_blurred = cv2.GaussianBlur(throwaway_copy,(15,15),0)
+  result = _tone_map_vectorized(throwaway_copy, 49)
 
   result *= 255
 
  # return divide_if_nonzero_vec(result, vid_frame[:, :, 0]) #bug
-  return _divide_if_nonzero_vectorized(result, throwaway_blurred)
+  return _divide_if_nonzero_vectorized(result, throwaway_copy)
 
 
 def tonemap_spatially_uniform(vid_frame):
   #is this changing things in place?
   result = np.copy(vid_frame)
-  result[:,:,2] = _tone_map_vectorized(vid_frame[:,:,2], 34)
-  result[:,:,2] *= 255
+  result[:,:,0] = _tone_map_vectorized(vid_frame[:,:,0], 49)
+  result[:,:,0] *= 255
   return result
 
 
