@@ -35,11 +35,11 @@ class AstaFilter(object):
                                                  self.gaussian_space_kernels
     )
 
-    output_1[:, :, 2] = numerators / normalizers
+    output_1[:, :, 0] = numerators / normalizers
   
     output_2 = AstaFilter.spatial_filter(output_1, short_of_target)
 
-    return output_2
+    return output_1
 
 
   @staticmethod
@@ -118,6 +118,8 @@ class AstaFilter(object):
       20
     )
 
+    return some_filtering
+
     #  lots_filtering = cv2.bilateralFilter(
     #                      temp_filtered_frame,
     #                  9,
@@ -190,19 +192,15 @@ class AstaFilter(object):
 
       other_frame = frame_window.frame_list[i]
 
-    #  curr_gauss_weights = get_weights_list(i, gaussian_space_kernels)
-
       space_distance_weights = AstaFilter.get_space_kernel(rounded_targets,gaussian_space_kernels,i)
 
-     # make_weights_array(space_distance_weights,curr_gauss_weights)
-
-      intensity_distances = get_neigh_diffs(frame[:, :, 2],other_frame[:, :, 2])
+      intensity_distances = get_neigh_diffs(frame[:, :, 0],other_frame[:, :, 0])
 
       intensity_weights = intensity_gaussian(intensity_distances)
 
       total_gaussian_weights = space_distance_weights * intensity_weights
 
-      numerators += total_gaussian_weights * other_frame[:, :, 2]
+      numerators += total_gaussian_weights * other_frame[:, :, 0]
 
       normalizers += total_gaussian_weights
 

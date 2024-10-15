@@ -59,6 +59,24 @@ class FrameQueue(object):
     return cnt
 
 
+  @staticmethod
+  def convert_to_hsv(img):
+    image = img[:, :, :].astype(np.uint8)
+    image = cv2.cvtColor(image, cv2.COLOR_YUV2BGR)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
+    image = image[:, :, :].astype(np.float64)
+    return image
+
+
+  def convert_to_yuv(self):
+    success, img = self.video_capt.read()
+    if success:
+      image = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+      image = image[:, :, :].astype(np.float64)
+      return success, image
+    else:
+      return success,img
+
   def write_vid_frame(self, img):
     image = img[:, :, :].astype(np.uint8)
     image = cv2.cvtColor(image, cv2.COLOR_HSV2BGR)
@@ -142,15 +160,17 @@ if __name__ == "__main__":
   filter_var = AstaFilter(frame_queue.frames_in_window)
 
   while fw:
-    f = fw.get_main_frame()
-    h,s,v = cv2.split(f)
-    gain_ratios = find_target_luminance(v)
+
+    gain_ratios = find_target_luminance(fw.get_main_frame())
     result = filter_var.asta_filter(fw, gain_ratios)
-   # result[:,:,0] = tonemap_spatially_uniform(result)
+    #result[:, :, 0] = tonemap_spatially_uniform(f)
+ #   result = FrameQueue.convert_to_hsv(result)
+
    # result = np.copy(f)
 
-    result[:, :, 2] = tonemap_spatially_uniform(v)
+    result = tonemap_spatially_uniform(result)
     frame_queue.write_vid_frame(result)
+   # frame_queue.write_vid_frame(result)
     fw = frame_queue.get_next_frame()
 
 
