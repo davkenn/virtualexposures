@@ -12,7 +12,7 @@ def find_target_luminance(vid_frame):
   result *= 255
 
  # return divide_if_nonzero_vec(result, vid_frame[:, :, 0]) #bug
-  return _divide_if_nonzero_vectorized(result, throwaway_blurred[:, :, 0])
+  return _divide_if_nonzero_vectorized(result, throwaway_blurred)
 
 
 def tonemap_spatially_uniform(vid_frame):
@@ -32,9 +32,8 @@ def _tone_map(pixel_lum, attenuation):
 
 
 def _tone_map_vectorized(vid_frame, attenuation):
-  lum = vid_frame[:, :, 0]
   tone_map_vector_function = np.vectorize(_tone_map)
-  return tone_map_vector_function(lum,attenuation)
+  return tone_map_vector_function(vid_frame,attenuation)
 
 
 def _divide_if_nonzero(num, denom):
