@@ -63,14 +63,14 @@ class FrameQueue(object):
 
   def write_vid_frame(self, img):
     image = img[:, :, :].astype(np.uint8)
-    image = cv2.cvtColor(image, cv2.COLOR_YCrCb2BGR)
+    image = cv2.cvtColor(image, cv2.COLOR_Lab2BGR)
     self.video_writer.write(image)
 
 
   def read_vid_frame(self):
     success, img = self.video_capt.read()
     if success:
-      image = cv2.cvtColor(img, cv2.COLOR_BGR2YCrCb)
+      image = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
       image = image[:, :, :].astype(np.float64)
       return success, image
     else:
@@ -134,7 +134,7 @@ class FrameWindow(object):
 if __name__ == "__main__":
 
   try:
-    frame_queue = FrameQueue("virtualexposures/large.mp4")
+    frame_queue = FrameQueue("virtualexposures/large6.mp4")
   except ValueError as err:
     sys.stderr.write(err.message)
     sys.exit()
@@ -148,9 +148,7 @@ if __name__ == "__main__":
     gain_ratios = find_target_luminance(fw.get_main_frame())
 
     result = filter_var.asta_filter(fw, gain_ratios)
-    #result[:, :, 0] = tonemap_spatially_uniform(f)
- #   result = FrameQueue.convert_to_hsv(result)
-   # result = np.copy(f)
+
 
     result = tonemap_spatially_uniform(result)
     frame_queue.write_vid_frame(result)

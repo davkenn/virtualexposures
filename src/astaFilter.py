@@ -55,7 +55,6 @@ class AstaFilter(object):
     must be for them to be included in the average of nearby pixels.  This
     function returns both the temporally averaged pixel values and how short we
    were from combining enough pixels at each location with this temporal step."""
-
     gaussian_space_kernels = AstaFilter.rearrange_gaussian_kernels(
                                         gaussian_space_kernels,
                                         frame_window.is_frame_at_edges()
@@ -120,8 +119,8 @@ class AstaFilter(object):
     lots_filtering = cv2.bilateralFilter(
                           temp_filtered_frame.astype(np.float32),
                       7,
-              40,
-            40
+              35,
+            35
      )
 
     # need three channels of distances because spatial filter done on all 3
