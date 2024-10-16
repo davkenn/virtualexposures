@@ -76,7 +76,7 @@ class AstaFilter(object):
     )
 
 
-    ideal_weight = AstaFilter.get_pixel_targets(rounded_targets, space_kernel)
+    ideal_weight = AstaFilter.get_pixel_targets(pixel_targets, space_kernel)
 
 
     distances_short_of_target = ideal_weight - normalizers

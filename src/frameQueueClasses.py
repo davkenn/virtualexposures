@@ -134,7 +134,7 @@ class FrameWindow(object):
 if __name__ == "__main__":
 
   try:
-    frame_queue = FrameQueue("virtualexposures/1098665275-preview.mp4")
+    frame_queue = FrameQueue("virtualexposures/large.mp4")
   except ValueError as err:
     sys.stderr.write(err.message)
     sys.exit()
