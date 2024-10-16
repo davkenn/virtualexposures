@@ -43,7 +43,7 @@ class TestAstaFilter:
         1]
 
 
-      assert  a.max() > b.max() < c.max() < d.max() #> np.median(e)
+      assert  a.max() < b.max() < c.max() < d.max() <e.max()
 
   def test_temporal_filter_does_not_alter_argument(self,spatial_kernels,frame_window,fives):
     before = frame_window.get_main_frame()
