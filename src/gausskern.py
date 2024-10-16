@@ -6,9 +6,8 @@ import cv2
 import numpy as np
 import sys
 
+from src import constants
 
-
-INTENSITY_SIGMA = 2.3
 
 def get_1d_kernel(size, std_dev):
   #kernel_t = cv2.getGaussianKernel(size*2+1,std_dev)
@@ -54,32 +53,24 @@ def get_kernel_with_dynamic_std_dev(target_num, size):
     sys.stderr.write("Kernel size must be at least 21")
     sys.exit()
 
-#  if target_num == 1.0:
- #   return get_1d_kernel(0, .3989193)
-  #target_num = target_num - 1.0
   target_before_distance_sigma = intensity_gaussian(0.0) * 2.0 * target_num
-  kernel_size = 5
   std_dev = 0.5
-  summation = 0.0
   space_kernel = get_1d_kernel(find_radius(std_dev), std_dev)
-  total = get_kernel_center(space_kernel) * target_before_distance_sigma
   summation = (intensity_gaussian(np.zeros_like(space_kernel)) * space_kernel).sum()
-  while summation < total:
-    std_dev += 0.4
-    space_kernel = get_1d_kernel(find_radius(std_dev),std_dev)
-    total = target_before_distance_sigma * get_kernel_center(space_kernel)
+  total = get_kernel_center(space_kernel) * target_before_distance_sigma
 
+
+  while summation < total:
+    std_dev += 0.2
+    space_kernel = get_1d_kernel(find_radius(std_dev),std_dev)
     all_pixels = intensity_gaussian(np.zeros_like(space_kernel)) * space_kernel
     summation = all_pixels.sum()
-
+    total = target_before_distance_sigma * get_kernel_center(space_kernel)
   return space_kernel
 
 
 def find_radius(sigma):
   return int(np.ceil(2*sigma))
-
-  #return math.ceil(sigma * np.sqrt(2*np.log(255)) -1)
-
 
 
 def get_neighborhood_compare_kernel(size, std_dev):
@@ -110,7 +101,7 @@ def intensity_gaussian(pixel_value_difference):
   """
   return _intensity_gaussian(pixel_value_difference)
 
-def _intensity_gaussian(pixel_value_difference, sigma= INTENSITY_SIGMA):
+def _intensity_gaussian(pixel_value_difference, sigma= constants.INTENSITY_SIGMA):
   return np.exp((-(pixel_value_difference ** 2) / (2 * (sigma ** 2))))     / (sigma * np.sqrt(2 * np.pi))
  #   return ((1 / (sigma * np.sqrt(2 * np.pi))) *
    #         np.exp(-0.5 * ((pixel_value_difference ** 2) / (sigma ** 2))))

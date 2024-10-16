@@ -2,7 +2,7 @@ from __future__ import division
 from inspect import currentframe
 from numpy.random import normal
 from gausskern import get_neigh_diffs, get_kernel_with_dynamic_std_dev
-from gausskern import INTENSITY_SIGMA
+
 from gausskern import intensity_gaussian
 from scipy import stats
 import cv2
@@ -81,12 +81,11 @@ class AstaFilter(object):
 
     distances_short_of_target = ideal_weight - normalizers
 
-
-
     print distances_short_of_target.min(),distances_short_of_target.max(),stats.mode(distances_short_of_target,axis=None),np.average(distances_short_of_target)
     print normalizers.min(), normalizers.max(), stats.mode(normalizers,axis=None), np.average(normalizers)
 
     return (numerators, normalizers), distances_short_of_target
+
 
   @staticmethod
   def get_pixel_targets(rounded_targets, space_kernel):
@@ -99,8 +98,6 @@ class AstaFilter(object):
       space_distance_weights = np.copy(rounded_targets)
       make_weights_array(space_distance_weights,curr_gauss_weights)
       return space_distance_weights
-
-
 
 
   @staticmethod

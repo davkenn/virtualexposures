@@ -2,12 +2,13 @@ from __future__ import division
 import cv2
 import numpy as np
 from math import log10
+import constants as const
 
 
 def find_target_luminance(vid_frame):
   throwaway_copy = np.copy(vid_frame[:,:,0])
  # throwaway_blurred = cv2.GaussianBlur(throwaway_copy,(15,15),0)
-  result = _tone_map_vectorized(throwaway_copy, 49)
+  result = _tone_map_vectorized(throwaway_copy)
 
   result *= 255
 
@@ -18,12 +19,12 @@ def find_target_luminance(vid_frame):
 def tonemap_spatially_uniform(vid_frame):
   #is this changing things in place?
   result = np.copy(vid_frame)
-  result[:,:,0] = _tone_map_vectorized(vid_frame[:,:,0], 49)
+  result[:,:,0] = _tone_map_vectorized(vid_frame[:,:,0])
   result[:,:,0] *= 255
   return result
 
 
-def _tone_map(pixel_lum, attenuation):
+def _tone_map(pixel_lum, attenuation= const.TONEMAP_ATTENUATION):
   """Takes as argument an input pixel luminance and maps it to an output pixel
    luminance. """
   ratio = pixel_lum / 255.0 #255 is max luminance
@@ -32,9 +33,9 @@ def _tone_map(pixel_lum, attenuation):
   return num / denom
 
 
-def _tone_map_vectorized(vid_frame, attenuation):
+def _tone_map_vectorized(vid_frame):
   tone_map_vector_function = np.vectorize(_tone_map)
-  return tone_map_vector_function(vid_frame,attenuation)
+  return tone_map_vector_function(vid_frame)
 
 
 def _divide_if_nonzero(num, denom):

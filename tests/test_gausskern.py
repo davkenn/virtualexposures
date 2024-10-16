@@ -3,8 +3,7 @@ import pytest
 
 from src.gausskern import *
 from src.gausskern import _intensity_gaussian
-
-
+import src.constants as const
 
 class TestGausskern:
 
@@ -25,6 +24,7 @@ class TestGausskern:
 
         assert (get_kernel_center(a) > get_kernel_center(b) >
                 get_kernel_center(c) > get_kernel_center(d))
+
 
     def test_calc_temp_std_dev_get_kernel_returns_kernels_equal_one(self):
         a = get_kernel_with_dynamic_std_dev(1.0, 21).min()
