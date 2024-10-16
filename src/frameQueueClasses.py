@@ -25,7 +25,7 @@ class FrameQueue(object):
     dims = (int(self.video_capt.get(cv2.CAP_PROP_FRAME_WIDTH)),
                    int(self.video_capt.get(cv2.CAP_PROP_FRAME_HEIGHT)))
 
-    self.video_writer = cv2.VideoWriter('njjfixingcolors.avi',
+    self.video_writer = cv2.VideoWriter('kkkk.avi',
                                         cv2.VideoWriter.fourcc('M','J','P','G'),
                                         self.video_capt.get(cv2.CAP_PROP_FPS),
                                         dims
@@ -134,7 +134,7 @@ class FrameWindow(object):
 if __name__ == "__main__":
 
   try:
-    frame_queue = FrameQueue("virtualexposures/large4.mp4")
+    frame_queue = FrameQueue("virtualexposures/large.mp4")
   except ValueError as err:
     sys.stderr.write(err.message)
     sys.exit()
@@ -144,15 +144,10 @@ if __name__ == "__main__":
   filter_var = AstaFilter(frame_queue.frames_in_window)
 
   while fw:
-
     gain_ratios = find_target_luminance(fw.get_main_frame())
-
     result = filter_var.asta_filter(fw, gain_ratios)
-
-
     result = tonemap_spatially_uniform(result)
     frame_queue.write_vid_frame(result)
-
     fw = frame_queue.get_next_frame()
 
 
