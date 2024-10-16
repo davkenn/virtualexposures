@@ -9,7 +9,8 @@ import sys
 INTENSITY_SIGMA = 2.3
 
 def get_1d_kernel(size, std_dev):
-  kernel_t = cv2.getGaussianKernel(size*2+1,std_dev)
+  #kernel_t = cv2.getGaussianKernel(size*2+1,std_dev)
+  kernel_t = cv2.getGaussianKernel(size*2+1,-1)
 
   for i in range(len(kernel_t)):
     a = abs((len(kernel_t)//2)- i)
@@ -60,9 +61,9 @@ def get_kernel_with_dynamic_std_dev(target_num, size):
   summation = 0.0
   space_kernel = get_1d_kernel(find_radius(std_dev), std_dev)
   total = get_kernel_center(space_kernel) * target_before_distance_sigma
-
+  summation = (intensity_gaussian(np.zeros_like(space_kernel)) * space_kernel).sum()
   while summation < total:
-    std_dev += 0.005
+    std_dev += 0.4
     space_kernel = get_1d_kernel(find_radius(std_dev),std_dev)
     total = target_before_distance_sigma * get_kernel_center(space_kernel)
 

@@ -6,10 +6,12 @@ from tonemap import find_target_luminance,tonemap_spatially_uniform
 from astaFilter import AstaFilter
 
 class FrameQueue(object):
+
+  surrounding_frame_count = 31
   """Surrounding frame count is the number of frames counting itself.
    Probably need a diff number of surrounding frames for each frame  but
    the best thing to do is probably just overestimate and use less if need be"""
-  def __init__(self, video_filename, surrounding_frame_count):
+  def __init__(self, video_filename):
 
     self.video_filename = video_filename
     self.current_frame_index = -1 #position of current frame in window
@@ -30,8 +32,8 @@ class FrameQueue(object):
     )
 
     self.frames_in_video = self.count_frames()
-
-    if surrounding_frame_count % 2 == 0:
+    surrounding_frame_count = FrameQueue.surrounding_frame_count
+    if FrameQueue.surrounding_frame_count % 2 == 0:
       surrounding_frame_count += 1
 
     if surrounding_frame_count > self.frames_in_video:
@@ -152,7 +154,7 @@ class FrameWindow(object):
 if __name__ == "__main__":
 
   try:
-    frame_queue = FrameQueue("virtualexposures/large.mp4", 41)
+    frame_queue = FrameQueue("virtualexposures/large6.mp4")
   except ValueError as err:
     sys.stderr.write(err.message)
     sys.exit()
