@@ -7,7 +7,7 @@ from astaFilter import AstaFilter
 
 class FrameQueue(object):
 
-  surrounding_frame_count = 31
+  surrounding_frame_count = 37
   """Surrounding frame count is the number of frames counting itself.
    Probably need a diff number of surrounding frames for each frame  but
    the best thing to do is probably just overestimate and use less if need be"""
@@ -32,15 +32,15 @@ class FrameQueue(object):
     )
 
     self.frames_in_video = self.count_frames()
-    surrounding_frame_count = FrameQueue.surrounding_frame_count
-    if FrameQueue.surrounding_frame_count % 2 == 0:
-      surrounding_frame_count += 1
 
-    if surrounding_frame_count > self.frames_in_video:
-      surrounding_frame_count = self.frames_in_video
+    if FrameQueue.surrounding_frame_count % 2 == 0:
+      FrameQueue.surrounding_frame_count += 1
+
+    if FrameQueue.surrounding_frame_count > self.frames_in_video:
+      FrameQueue.surrounding_frame_count = self.frames_in_video
 
 #maybe set this to a constant need same value in other file
-    self.frames_in_window = surrounding_frame_count
+    self.frames_in_window = FrameQueue.surrounding_frame_count
 
     for i in range(self.frames_in_window):
       success,image = self.read_vid_frame()

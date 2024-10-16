@@ -6,6 +6,8 @@ import cv2
 import numpy as np
 import sys
 
+
+
 INTENSITY_SIGMA = 2.3
 
 def get_1d_kernel(size, std_dev):
@@ -15,7 +17,7 @@ def get_1d_kernel(size, std_dev):
   for i in range(len(kernel_t)):
     a = abs((len(kernel_t)//2)- i)
     kernel_t[i] = _intensity_gaussian(a,std_dev)
-  kernel = np.array([[0.0]] *41)
+  kernel = np.array([[0.0]] *37)
   center_indices = [slice(int((l - s) / 2), int((l + s) / 2))
                     for l, s in zip(kernel.shape, kernel_t.shape)]
 

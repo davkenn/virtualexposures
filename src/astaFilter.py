@@ -134,11 +134,10 @@ class AstaFilter(object):
       axis=2
     )
     # this is used as a cutoff for spots where no further filtering required
-    min_values = np.zeros_like(dists_short)
-    min_values.fill(0.0)
+    min_values = np.full_like(dists_short,0.0)
 
-    middles = np.zeros_like(dists_short)
-    middles.fill(0.02)
+    middles = np.full_like(dists_short,0.02)
+
     a1 = np.less(dists_short, min_values)
     filla = np.where(a1, temp_filtered_frame, some_filtering)
 
