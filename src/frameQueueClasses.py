@@ -134,7 +134,7 @@ class FrameWindow(object):
 if __name__ == "__main__":
 
   try:
-    frame_queue = FrameQueue("virtualexposures/1098665275-preview.mp4")
+    frame_queue = FrameQueue("virtualexposures/large.mp4")
   except ValueError as err:
     sys.stderr.write(err.message)
     sys.exit()
@@ -146,6 +146,7 @@ if __name__ == "__main__":
   while fw:
 
     gain_ratios = find_target_luminance(fw.get_main_frame())
+
     result = filter_var.asta_filter(fw, gain_ratios)
     #result[:, :, 0] = tonemap_spatially_uniform(f)
  #   result = FrameQueue.convert_to_hsv(result)

@@ -110,9 +110,9 @@ class AstaFilter(object):
 
     some_filtering = cv2.bilateralFilter(
       temp_filtered_frame.astype(np.float32),
-      5,
-      20,
-      20
+      9,
+      150,
+      150
     )
 
 #    return some_filtering
