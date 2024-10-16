@@ -7,8 +7,8 @@ import constants as const
 
 def find_target_luminance(vid_frame):
   throwaway_copy = np.copy(vid_frame[:,:,0])
- # throwaway_blurred = cv2.GaussianBlur(throwaway_copy,(15,15),0)
-  result = _tone_map_vectorized(throwaway_copy)
+  throwaway_blurred = cv2.GaussianBlur(throwaway_copy,(15,15),0)
+  result = _tone_map_vectorized(throwaway_blurred)
 
   result *= 255
 
