@@ -110,35 +110,34 @@ class AstaFilter(object):
 
     some_filtering = cv2.bilateralFilter(
       temp_filtered_frame.astype(np.float32),
-      9,
-      150,
-      150
+      7,
+      20,
+      20
     )
 
-#    return some_filtering
 
-    #  lots_filtering = cv2.bilateralFilter(
-    #                      temp_filtered_frame,
-    #                  9,
-    #          150,
-    #        150
-    # )
+
+    lots_filtering = cv2.bilateralFilter(
+                          temp_filtered_frame.astype(np.float32),
+                      7,
+              40,
+            40
+     )
 
     # need three channels of distances because spatial filter done on all 3
     dists_short = np.repeat(
-      distances_short_of_targets[:, :, np.newaxis],
-      3,
-      axis=2
+                     distances_short_of_targets[:, :, np.newaxis],
+                     3,
+                     axis=2
     )
     # this is used as a cutoff for spots where no further filtering required
     min_values = np.full_like(dists_short,0.0)
 
-    middles = np.full_like(dists_short,0.02)
-
-    a1 = np.less(dists_short, min_values)
-    filla = np.where(a1, temp_filtered_frame, some_filtering)
+    middles = np.full_like(dists_short,0.04)
 
     greater_than_zeros = np.greater_equal(dists_short, min_values)
+    filla = np.where(greater_than_zeros, some_filtering,temp_filtered_frame)
+
     less_than_highs = np.less(dists_short, middles)
     a_little_short_elems = np.logical_and(greater_than_zeros, less_than_highs)
 
@@ -148,14 +147,14 @@ class AstaFilter(object):
 
     a_lot_short_elems = np.greater_equal(dists_short, middles)
 
-    #  lots_space_filter_vals_added = np.where(
-    #                                   a_lot_short_elems,
-    #                                  lots_filtering,
-    #                                 some_space_filter_vals_added
-    #  )
+    lots_space_filter_vals_added = np.where(
+                                       a_lot_short_elems,
+                                      lots_filtering,
+                                     some_space_filter_vals_added
+      )
 
-    # return lots_space_filter_vals_added
-    return filla
+    return lots_space_filter_vals_added
+
 
 
   @staticmethod
