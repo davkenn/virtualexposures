@@ -6,11 +6,11 @@ class TestAstaFilter:
 
   def test_less_pixels_gathered_for_larger_gain_ratios(
               self,frame_window,ones,twos,threes,fours,fives,spatial_kernels):
-    assert (AstaFilter.average_temporally_adjacent_pixels(frame_window,spatial_kernels,ones)[1].sum() >
-              AstaFilter.average_temporally_adjacent_pixels(frame_window, spatial_kernels,twos)[1].sum() >
-              AstaFilter.average_temporally_adjacent_pixels(frame_window, spatial_kernels, threes)[1].sum() >
-              AstaFilter.average_temporally_adjacent_pixels(frame_window, spatial_kernels, fours)[1].sum() >
-              AstaFilter.average_temporally_adjacent_pixels(frame_window, spatial_kernels, fives)[1].sum())
+    assert (AstaFilter.average_temporally_adjacent_pixels(frame_window,spatial_kernels,ones)[1][0].sum() >
+              AstaFilter.average_temporally_adjacent_pixels(frame_window, spatial_kernels,twos)[1][0].sum() >
+              AstaFilter.average_temporally_adjacent_pixels(frame_window, spatial_kernels, threes)[1][0].sum() >
+              AstaFilter.average_temporally_adjacent_pixels(frame_window, spatial_kernels, fours)[1][0].sum() >
+              AstaFilter.average_temporally_adjacent_pixels(frame_window, spatial_kernels, fives)[1][0].sum())
 
 
   def test_temporal_filter2(self,frame_window,ones,twos,threes,fours,fives,spatial_kernels):
@@ -43,7 +43,7 @@ class TestAstaFilter:
   def test_temporal_filter_result_diff_from_argument(self,spatial_kernels,frame_window,fives):
     before = frame_window.get_main_frame()
     (nums, norms), _ = AstaFilter.temporal_filter(frame_window, fives, spatial_kernels)
-    assert not np.array_equal(before[:,:,0], np.round(nums/norms))
+    assert not np.array_equal(before[:,:,0], np.round(nums[0]/norms[0]))
 
 
   def test_spatial_filter_does_nothing_when_target_met(self,frame_window,all_reached_target):

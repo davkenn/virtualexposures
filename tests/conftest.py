@@ -8,7 +8,7 @@ from src.astaFilter import AstaFilter
 @pytest.fixture
 def fire_image():
     a = cv2.imread("data/tonemap_fire.PNG")
-    return cv2.cvtColor(a,cv2.COLOR_BGR2HSV)
+    return cv2.cvtColor(a,cv2.COLOR_BGR2HSV).astype(np.float64)
 
 @pytest.fixture
 def frame_window():

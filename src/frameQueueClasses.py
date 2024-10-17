@@ -146,10 +146,12 @@ if __name__ == "__main__":
   while fw:
     gain_ratios = find_target_luminance(fw.get_main_frame())
     result = filter_var.asta_filter(fw, gain_ratios)
+
     result = tonemap_spatially_uniform(result)
     result = cv2.cvtColor(result.astype(np.uint8),cv2.COLOR_Lab2BGR)
 
     result = cv2.cvtColor(result,cv2.COLOR_BGR2HSV)
+
     h, s, v = cv2.split(result)
     s = cv2.multiply(s,1.8)
     hsv_image = cv2.merge([h, s, v])
