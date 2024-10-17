@@ -63,14 +63,14 @@ class FrameQueue(object):
 
   def write_vid_frame(self, img):
     image = img[:, :, :].astype(np.uint8)
-    image = cv2.cvtColor(image, cv2.COLOR_Lab2BGR)
+    image = cv2.cvtColor(image, cv2.COLOR_HSV2BGR)
     self.video_writer.write(image)
 
 
   def read_vid_frame(self):
     success, img = self.video_capt.read()
     if success:
-      image = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+      image = cv2.cvtColor(img, cv2.COLOR_BGR2Lab)
       image = image[:, :, :].astype(np.float64)
       return success, image
     else:
@@ -147,7 +147,13 @@ if __name__ == "__main__":
     gain_ratios = find_target_luminance(fw.get_main_frame())
     result = filter_var.asta_filter(fw, gain_ratios)
     result = tonemap_spatially_uniform(result)
-    frame_queue.write_vid_frame(result)
+    result = cv2.cvtColor(result.astype(np.uint8),cv2.COLOR_Lab2BGR)
+
+    result = cv2.cvtColor(result,cv2.COLOR_BGR2HSV)
+    h, s, v = cv2.split(result)
+    s = cv2.multiply(s,2.1)
+    hsv_image = cv2.merge([h, s, v])
+    frame_queue.write_vid_frame(hsv_image)
     fw = frame_queue.get_next_frame()
 
 
