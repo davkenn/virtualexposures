@@ -46,9 +46,7 @@ def get_kernel_with_dynamic_std_dev(target_num, size):
   #I have attenuation at 34 so I need to handle target_nums of up to
   #to 10.  If I had a much greater attenuation, I would need to change this
   #algorithm
-  if target_num > 10.0:
-    sys.stderr.write("Mapping should not go over 9.5")
-    sys.exit()
+
   if size < 21:
     sys.stderr.write("Kernel size must be at least 21")
     sys.exit()
@@ -101,16 +99,8 @@ def intensity_gaussian(pixel_value_difference):
   """
   return _intensity_gaussian(pixel_value_difference)
 
+
 def _intensity_gaussian(pixel_value_difference, sigma= constants.INTENSITY_SIGMA):
   return np.exp((-(pixel_value_difference ** 2) / (2 * (sigma ** 2))))     / (sigma * np.sqrt(2 * np.pi))
  #   return ((1 / (sigma * np.sqrt(2 * np.pi))) *
    #         np.exp(-0.5 * ((pixel_value_difference ** 2) / (sigma ** 2))))
-
-
-def _centralize_weights(kernel):
-  kernel[0] = 0.0
-  kernel[1] = 0.0
-  kernel[len(kernel)-1] = 0.0
-  kernel[len(kernel)-1] = 0.0
-  kernel = kernel / kernel.sum()
-  return kernel

@@ -10,9 +10,27 @@ def fire_image(request):
     a = cv2.imread(request.param)
     return cv2.cvtColor(a,cv2.COLOR_BGR2HSV).astype(np.float64)
 
+
 @pytest.fixture
 def frame_window():
     a = FrameQueue("data/1110347515-preview.mp4")
+    b = a.get_next_frame()
+    while b.is_frame_at_edges() != 0:
+        b = a.get_next_frame()
+    return b
+
+
+@pytest.fixture
+def frame_window_identical_frames():
+    a = FrameQueue("data/test_identical_frames.avi")
+    b = a.get_next_frame()
+    while b.is_frame_at_edges() != 0:
+        b = a.get_next_frame()
+    return b
+
+@pytest.fixture
+def frame_window_all_but_center_blank():
+    a = FrameQueue("data/test_all_surrounding_frames_black.avi")
     b = a.get_next_frame()
     while b.is_frame_at_edges() != 0:
         b = a.get_next_frame()
@@ -40,7 +58,6 @@ def none_reached_target(frame_window):
 
  return np.full_like(frame_window.get_main_frame()[:, :, 0], 0.1)
 
-
 @pytest.fixture
 def ones(frame_window):
     return np.full_like(frame_window.get_main_frame()[:, :, 0], 1.0)
@@ -60,3 +77,26 @@ def fours(frame_window):
 @pytest.fixture
 def fives(frame_window):
     return np.full_like(frame_window.get_main_frame()[:, :, 0], 5.0)
+
+@pytest.fixture
+def sixes(frame_window):
+    return np.full_like(frame_window.get_main_frame()[:, :, 0],6.0)
+
+@pytest.fixture
+def sevens(frame_window):
+    return np.full_like(frame_window.get_main_frame()[:, :, 0],7.0)
+
+@pytest.fixture
+def eights(frame_window):
+    return np.full_like(frame_window.get_main_frame()[:, :, 0], 8.0)
+
+@pytest.fixture
+def nines(frame_window):
+    return np.full_like(frame_window.get_main_frame()[:, :, 0], 9.0)
+
+
+@pytest.fixture(params=[i/2.0 for i in range(2,19)])
+
+def gains(frame_window,request):
+  return np.full_like(frame_window.get_main_frame()[:, :, 0], request.param)
+

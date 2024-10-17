@@ -9,11 +9,8 @@ import cv2
 import numpy as np
 
 class AstaFilter(object):
-  """Surrounding frame count is the number of frames counting itself.
-   Probably need a diff number of surrounding frames for each frame  but
-   the best thing to do is probably just overestimate and use less if need be"""
-  def __init__(self,size):
 
+  def __init__(self,size):
     self.gaussian_space_kernels = self.make_gaussian_kernels(size)
 
 
@@ -77,7 +74,6 @@ class AstaFilter(object):
 
 
     ideal_weight = AstaFilter.get_pixel_targets(pixel_targets, space_kernel)
-
 
     distances_short_of_target = ideal_weight - normalizers[0]
 

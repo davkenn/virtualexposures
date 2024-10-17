@@ -25,7 +25,7 @@ class FrameQueue(object):
     dims = (int(self.video_capt.get(cv2.CAP_PROP_FRAME_WIDTH)),
                    int(self.video_capt.get(cv2.CAP_PROP_FRAME_HEIGHT)))
 
-    self.video_writer = cv2.VideoWriter('kkkk.avi',
+    self.video_writer = cv2.VideoWriter('ad.avi',
                                         cv2.VideoWriter.fourcc('M','J','P','G'),
                                         self.video_capt.get(cv2.CAP_PROP_FPS),
                                         dims
@@ -134,7 +134,7 @@ class FrameWindow(object):
 if __name__ == "__main__":
 
   try:
-    frame_queue = FrameQueue("virtualexposures/large.mp4")
+    frame_queue = FrameQueue("../tests/data/test_all_surrounding_frames_black.avi")
   except ValueError as err:
     sys.stderr.write(err.message)
     sys.exit()
@@ -146,10 +146,8 @@ if __name__ == "__main__":
   while fw:
     gain_ratios = find_target_luminance(fw.get_main_frame())
     result = filter_var.asta_filter(fw, gain_ratios)
-
     result = tonemap_spatially_uniform(result)
     result = cv2.cvtColor(result.astype(np.uint8),cv2.COLOR_Lab2BGR)
-
     result = cv2.cvtColor(result,cv2.COLOR_BGR2HSV)
 
     h, s, v = cv2.split(result)

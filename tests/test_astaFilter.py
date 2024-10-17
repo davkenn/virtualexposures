@@ -1,6 +1,9 @@
 import numpy as np
 import pytest
 from src.astaFilter import AstaFilter
+from src.gausskern import intensity_gaussian
+from src.tonemap import tonemap_spatially_uniform, find_target_luminance
+
 
 class TestAstaFilter:
 
@@ -72,6 +75,30 @@ class TestAstaFilter:
     before = frame_window.get_main_frame()
     result = asta_filter.asta_filter(frame_window, ones)
     assert not np.array_equal(before, np.round(result))
+
+
+  def test_asta_filter_result_same_as_argument_when_vid_frames_identical(self, asta_filter, frame_window_identical_frames):
+    before = frame_window_identical_frames.get_main_frame()
+
+    ratios = find_target_luminance(frame_window_identical_frames.get_main_frame())
+    result = AstaFilter(37).asta_filter(frame_window_identical_frames, ratios)
+    assert np.array_equal(before, np.round(result))
+
+  def test_asta_filter_result_same_as_argument_when_all_but_center_blank(self,
+                                                                         asta_filter,
+                                                                         frame_window_all_but_center_blank):
+    before = frame_window_all_but_center_blank.get_main_frame()
+
+    ratios = find_target_luminance(
+      frame_window_all_but_center_blank.get_main_frame())
+    result = AstaFilter(37).asta_filter(frame_window_all_but_center_blank, ratios)
+    assert np.array_equal(before, np.round(result))
+
+  def test_asta_filter_rnt(self, asta_filter, frame_window,spatial_kernels,gains):
+
+    dists_short = asta_filter.temporal_filter(frame_window,gains,spatial_kernels)[1]
+    #got halfway there
+    assert np.average(dists_short) < (2 * spatial_kernels[gains.max()].max() * intensity_gaussian(0.0) * gains.max()) / 6.0
 
 
 
