@@ -239,7 +239,6 @@ def get_weights_list(index, kernel_dict):
   which is both the frame index in the frame queue and the index to the proper
   gaussian weight"""
   weights_list = []
-  #go through dict in order
   for key in sorted(kernel_dict.iterkeys()):
     weights_list.append(kernel_dict[key].item(index))
 

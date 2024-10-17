@@ -4,7 +4,7 @@ import src.constants as const
 class TestTonemap:
 
 
-    def test_tone_map_gain_ration_in_range(self):
+    def test_tone_returns_values_in_range(self):
         for i in range(0,256):
             assert _tone_map(float(i))  >= 0.0
             assert _tone_map(float(i)) <= 255.0
@@ -17,7 +17,12 @@ class TestTonemap:
         assert tonemap_spatially_uniform(fire_image).min() >= 0.0
 
 
-    def test_tone_map_spatially_unifor(self, fire_image):
+    def test_tone_map_uses_all_values(self, fire_image):
+        assert tonemap_spatially_uniform(fire_image).max() > 254.0
+        assert tonemap_spatially_uniform(fire_image).min() < 1.0
+
+
+    def test_tone_map_gain_ratio_in_range(self, fire_image):
         assert find_target_luminance(fire_image).max() < 10.0
         assert find_target_luminance(fire_image).min() >= 1.0
 

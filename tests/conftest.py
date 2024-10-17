@@ -5,9 +5,9 @@ from src.frameQueueClasses import FrameQueue
 from src.astaFilter import AstaFilter
 
 
-@pytest.fixture
-def fire_image():
-    a = cv2.imread("data/tonemap_fire.PNG")
+@pytest.fixture(params=["data/tonemap_fire.PNG","data/tonemap_dark.PNG","data/tonemap_dark2.PNG"])
+def fire_image(request):
+    a = cv2.imread(request.param)
     return cv2.cvtColor(a,cv2.COLOR_BGR2HSV).astype(np.float64)
 
 @pytest.fixture
