@@ -105,23 +105,20 @@ class AstaFilter(object):
     """This function chooses a final pixel value with either no
     spatial filtering, or varying degrees of spatial filtering depending
     on how short the temporal filter came to gathering enough pixels"""
-#    return temp_filtered_frame
     # TODO: median filtering
 
     some_filtering = cv2.bilateralFilter(
       temp_filtered_frame.astype(np.float32),
-      7,
-      20,
-      20
+      5,
+      10,
+      10
     )
-
-
 
     lots_filtering = cv2.bilateralFilter(
                           temp_filtered_frame.astype(np.float32),
                       7,
-              35,
-            35
+              25,
+            25
      )
 
     # need three channels of distances because spatial filter done on all 3
@@ -130,31 +127,26 @@ class AstaFilter(object):
                      3,
                      axis=2
     )
-    # this is used as a cutoff for spots where no further filtering required
-    min_values = np.full_like(dists_short,0.0)
 
+    min_values = np.full_like(dists_short,0.0)
     middles = np.full_like(dists_short,0.04)
 
     greater_than_zeros = np.greater_equal(dists_short, min_values)
-    filla = np.where(greater_than_zeros, some_filtering,temp_filtered_frame)
-
     less_than_highs = np.less(dists_short, middles)
-    a_little_short_elems = np.logical_and(greater_than_zeros, less_than_highs)
 
-    some_space_filter_vals_added = np.where(a_little_short_elems,
-                                            some_filtering,
-                                            temp_filtered_frame)
-
-    a_lot_short_elems = np.greater_equal(dists_short, middles)
+    some_space_filter_vals_added = np.where(
+                            np.logical_and(greater_than_zeros, less_than_highs),
+                            some_filtering,
+                            temp_filtered_frame
+    )
 
     lots_space_filter_vals_added = np.where(
-                                       a_lot_short_elems,
+                                      np.greater_equal(dists_short, middles),
                                       lots_filtering,
-                                     some_space_filter_vals_added
-      )
+                                      some_space_filter_vals_added
+    )
 
     return lots_space_filter_vals_added
-
 
 
   @staticmethod
@@ -261,23 +253,23 @@ def make_weights_array(rounded_targets, weights_list):
   which holds the gaussian weights for the different filter_keys.  Will return
   a numpy array of pixel lum size with values of spatial gaussian weights"""
 #what about my filter key 9.5? why are these diff lengths
-  rounded_targets[rounded_targets > 9.1] = weights_list[17] #9.5 weight
-  rounded_targets[rounded_targets > 8.6] = weights_list[16] #9.0 weight
-  rounded_targets[rounded_targets > 8.1] = weights_list[15] #8.5 weight
-  rounded_targets[rounded_targets > 7.6] = weights_list[14] #8.0 weight
-  rounded_targets[rounded_targets > 7.1] = weights_list[13] #7.5 weight
-  rounded_targets[rounded_targets > 6.6] = weights_list[12] #7.0 weight
-  rounded_targets[rounded_targets > 6.1] = weights_list[11] #6.5 weight
-  rounded_targets[rounded_targets > 5.6] = weights_list[10] #6.0 weight
-  rounded_targets[rounded_targets > 5.1] = weights_list[9] #5.5 weight
-  rounded_targets[rounded_targets > 4.6] = weights_list[8] #5.0 weight
-  rounded_targets[rounded_targets > 4.1] = weights_list[7] #4.5 weight
-  rounded_targets[rounded_targets > 3.6] = weights_list[6] #4.0 weight
-  rounded_targets[rounded_targets > 3.1] = weights_list[5] #3.5 weight
-  rounded_targets[rounded_targets > 2.6] = weights_list[4] #3.0 weight
-  rounded_targets[rounded_targets > 2.1] = weights_list[3] #2.5 weight
-  rounded_targets[rounded_targets > 1.6] = weights_list[2] #2.0 weight
-  rounded_targets[rounded_targets > 1.1] = weights_list[1] #1.5 weight
+  rounded_targets[rounded_targets > 9.25] = weights_list[17] #9.5 weight
+  rounded_targets[rounded_targets > 8.75] = weights_list[16] #9.0 weight
+  rounded_targets[rounded_targets > 8.25] = weights_list[15] #8.5 weight
+  rounded_targets[rounded_targets > 7.75] = weights_list[14] #8.0 weight
+  rounded_targets[rounded_targets > 7.25] = weights_list[13] #7.5 weight
+  rounded_targets[rounded_targets > 6.75] = weights_list[12] #7.0 weight
+  rounded_targets[rounded_targets > 6.25] = weights_list[11] #6.5 weight
+  rounded_targets[rounded_targets > 5.75] = weights_list[10] #6.0 weight
+  rounded_targets[rounded_targets > 5.25] = weights_list[9] #5.5 weight
+  rounded_targets[rounded_targets > 4.75] = weights_list[8] #5.0 weight
+  rounded_targets[rounded_targets > 4.25] = weights_list[7] #4.5 weight
+  rounded_targets[rounded_targets > 3.75] = weights_list[6] #4.0 weight
+  rounded_targets[rounded_targets > 3.25] = weights_list[5] #3.5 weight
+  rounded_targets[rounded_targets > 2.75] = weights_list[4] #3.0 weight
+  rounded_targets[rounded_targets > 2.25] = weights_list[3] #2.5 weight
+  rounded_targets[rounded_targets > 1.75] = weights_list[2] #2.0 weight
+  rounded_targets[rounded_targets > 1.25] = weights_list[1] #1.5 weight
   rounded_targets[rounded_targets == 1.0] = weights_list[0] #1.0 weight
 
   return rounded_targets
