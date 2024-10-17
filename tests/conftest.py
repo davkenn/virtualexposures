@@ -1,8 +1,14 @@
+import cv2
 import numpy as np
 import pytest
 from src.frameQueueClasses import FrameQueue
 from src.astaFilter import AstaFilter
 
+
+@pytest.fixture
+def fire_image():
+    a = cv2.imread("data/tonemap_fire.PNG")
+    return cv2.cvtColor(a,cv2.COLOR_BGR2HSV)
 
 @pytest.fixture
 def frame_window():
