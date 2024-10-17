@@ -134,7 +134,7 @@ class FrameWindow(object):
 if __name__ == "__main__":
 
   try:
-    frame_queue = FrameQueue("virtualexposures/large6.mp4")
+    frame_queue = FrameQueue("virtualexposures/large.mp4")
   except ValueError as err:
     sys.stderr.write(err.message)
     sys.exit()
@@ -151,7 +151,7 @@ if __name__ == "__main__":
 
     result = cv2.cvtColor(result,cv2.COLOR_BGR2HSV)
     h, s, v = cv2.split(result)
-    s = cv2.multiply(s,2.1)
+    s = cv2.multiply(s,1.8)
     hsv_image = cv2.merge([h, s, v])
     frame_queue.write_vid_frame(hsv_image)
     fw = frame_queue.get_next_frame()
